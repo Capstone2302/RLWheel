@@ -1,2 +1,2 @@
-# rlwheel
-Maximum Viable Product
+# RL Wheel
+Maximum Viable Product for Capstone 2024.
