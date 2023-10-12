@@ -25,10 +25,6 @@ import RPi.GPIO as gpio
 
 from Controls.reset_mechanism import reset_mechanism
 from RL.camera_setup import display
-def thread_function(name):
-    logging.info("Thread %s: starting", name)
-    time.sleep(2)
-    logging.info("Thread %s: finishing", name)
 
 def main():
     """
@@ -38,19 +34,13 @@ def main():
     explaining its purpose and overall program flow.
 
     """
-    # Your main program logic goes here\
-    try:
-        x = threading.Thread(target= display())
-        y = threading.Thread(target= reset_mechanism())
+    # Your main program logic goes here
 
-        x.start()
-        y.start()
+    x = threading.Thread(target= display())
+    y = threading.Thread(target= reset_mechanism())
 
-    except KeyboardInterrupt: # If there is a KeyboardInterrupt (when you press ctrl+c), exit the program and cleanup
-        gpio.cleanup()
-        x._Thread_stop()
-        y._Thread_stop()
-        print("Cleaning up!")
+    y.start()
+    x.start()
 
 
 if __name__ == "__main__":

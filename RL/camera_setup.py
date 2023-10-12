@@ -22,18 +22,13 @@ cam.start()
 
 def display():
     # create a loop to capture and display images
-    while True:
-        # capture an image
-        image = cam.get_image()
+    try:
+        while True:
+            # capture an image
+            image = cam.get_image()
 
-        # draw the image on the screen
-        screen.blit(image, (0, 0))
-        pygame.display.update()
-
-        # handle events
-        for event in pygame.event.get():
-            if event.type == KEYDOWN and event.key == K_ESCAPE:
-                # stop the loop if the user presses the ESC key
-                cam.stop()
-                pygame.quit()
-                quit()
+            # draw the image on the screen
+            screen.blit(image, (0, 0))
+            pygame.display.update()
+    except KeyboardInterrupt:
+        return
