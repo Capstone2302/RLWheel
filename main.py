@@ -19,7 +19,7 @@ Created - 06/10/2023
 
 # Imports
 import logging
-import threading
+import _thread
 import time
 import RPi.GPIO as gpio
 
@@ -35,12 +35,9 @@ def main():
 
     """
     # Your main program logic goes here
-
-    x = threading.Thread(target= display())
-    y = threading.Thread(target= reset_mechanism())
-
-    y.start()
-    x.start()
+    
+    x = _thread.start_new_thread(display,())
+    reset_mechanism()
 
 
 if __name__ == "__main__":
