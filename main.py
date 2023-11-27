@@ -20,17 +20,12 @@ Created - 06/10/2023
 # Imports
 import serial
 import time
+import sys
+import select
+from Controls.uart_handlr import receive_msg, send_msg  #TODO: import properly
 
 # Define the serial port and its settings
 ser = serial.Serial('/dev/ttyUSB0', baudrate=115200, timeout=200) 
-
-start_time = time.time()
-start_rpm = 300 # this is a dummy variable for now
-e_prev = 1 # another temp variable
-
-def send_command(command):
-    print(command.encode())
-    ser.write(command.encode())
 
 def main():
     """
@@ -41,32 +36,43 @@ def main():
 
     """
     # Your main program logic goes here
-
-    k_p = 0.05
-    k_i = 0.001
+    # TODO: Abstract this properly
+    k_p = 0.5
+    k_i = 0.005
     k_d = 0.00001
 
     i = 0 
-    
+    start_time = time.time()
+    set_rpm = 300 # this is a dummy variable for now
+    e_prev = 1 # another temp variable
+
+    f = open("logfile.txt", "a")
+    f.write(str(start_time) + "\n")
+    f.write("Set_RPM,Current_RPM,PWM_Estimate")
     try:
         while True:
             # get set speed from user (in RPM)
-            user_input = input("Enter command (1 for ON, 0 for OFF, q to quit): ")+ '\n'
+            ready, _, _ = select.select([sys.stdin], [], [], 0.6)
+            if ready:
+                # Read the input and update the motor_command
+                set_rpm = input("Enter motor command in rpm: ")
+                #print("Received motor command:", set_rpm)
 
             # get encoder value from UART
-            line = ser.readline().decode('utf-8').strip()
+            enc_val = receive_msg(ser)
+            if(enc_val == -1):
+                continue
 
             # get 'real' time 
             curr_time = time.time()
-            diff_time = start_time - curr_time
+            diff_time = curr_time - start_time
             start_time = curr_time
-
-            # calculate current rpm 
-            curr_rpm = line*60/diff_time
+            # calculate rpm
+            curr_rpm = float(enc_val)*60/diff_time
 
             # get error from set point and real
-            diff_rpm = start_rpm - curr_rpm
-            start_rpm = curr_rpm
+            diff_rpm = set_rpm - curr_rpm
+            # set_rpm = curr_rpm
 
             # using PID variables and such, calculate PWM output
 
@@ -74,17 +80,21 @@ def main():
             e_prev = diff_rpm
 
             # send PWM over UART
-            PWM_est = PWM_est.ljust(7, '\t')
-            print(curr_prm)
-            send_command(PWM_est)
+            msg = str(int(PWM_est)).ljust(7, '\t')
+           
+            f.write(str(set_rpm) + "," + str(curr_rpm) + "," + str(PWM_est) +"\n") 
+            send_msg(ser, msg)
+
+
 
     except KeyboardInterrupt:
         # Handle Ctrl+C to exit gracefully
         print("\nScript terminated by user.")
 
     finally:
-        # Close the serial port
-        ser.close()
+        f.close()
+    #     # Close the serial port
+    #     ser.close()
 
 
     
