@@ -18,13 +18,19 @@ Created - 06/10/2023
 """
 
 # Imports
-import logging
-import _thread
+import serial
 import time
-import RPi.GPIO as gpio
 
-from Controls.reset_mechanism import reset_mechanism
-from RL.camera_setup import display
+# Define the serial port and its settings
+ser = serial.Serial('/dev/ttyUSB0', baudrate=115200, timeout=200) 
+
+start_time = time.time()
+start_rpm = 300 # this is a dummy variable for now
+e_prev = 1 # another temp variable
+
+def send_command(command):
+    print(command.encode())
+    ser.write(command.encode())
 
 def main():
     """
@@ -35,10 +41,53 @@ def main():
 
     """
     # Your main program logic goes here
-    
-    x = _thread.start_new_thread(display,())
-    reset_mechanism()
 
+    k_p = 0.05
+    k_i = 0.001
+    k_d = 0.00001
+
+    i = 0 
+    
+    try:
+        while True:
+            # get set speed from user (in RPM)
+            user_input = input("Enter command (1 for ON, 0 for OFF, q to quit): ")+ '\n'
+
+            # get encoder value from UART
+            line = ser.readline().decode('utf-8').strip()
+
+            # get 'real' time 
+            curr_time = time.time()
+            diff_time = start_time - curr_time
+            start_time = curr_time
+
+            # calculate current rpm 
+            curr_rpm = line*60/diff_time
+
+            # get error from set point and real
+            diff_rpm = start_rpm - curr_rpm
+            start_rpm = curr_rpm
+
+            # using PID variables and such, calculate PWM output
+
+            PWM_est = k_p*diff_rpm + k_i*(i + diff_rpm) + k_d*(diff_rpm - e_prev)
+            e_prev = diff_rpm
+
+            # send PWM over UART
+            PWM_est = PWM_est.ljust(7, '\t')
+            print(curr_prm)
+            send_command(PWM_est)
+
+    except KeyboardInterrupt:
+        # Handle Ctrl+C to exit gracefully
+        print("\nScript terminated by user.")
+
+    finally:
+        # Close the serial port
+        ser.close()
+
+
+    
 
 if __name__ == "__main__":
-   main()
+    main()
