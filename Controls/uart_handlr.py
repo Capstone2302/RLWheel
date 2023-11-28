@@ -18,9 +18,15 @@ def send_msg(ser, command):
 def receive_msg(ser):
     line = ser.readline(12).decode().strip() 
     
-    if (len(line) < 4): 
+    if (len(line) < 5): 
         return -1 #maybe handle this a bit better
 
     line = list(line)
-    val = line[-1]
+    val = 0
+    for i in range(0,len(line)):
+        if line[i] == '\x00':
+            continue
+        else:
+            val = val*10 + float(line[i])
+
     return val 
