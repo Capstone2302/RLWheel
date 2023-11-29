@@ -20,9 +20,8 @@ Created - 06/10/2023
 # Imports
 import serial
 import time
-import sys
-import select
-import csv
+import pandas as pd 
+from pathlib import Path 
 from Controls.uart_handlr import receive_msg, send_msg  #TODO: import properly
 
 # Define the serial port and its settings
@@ -39,17 +38,35 @@ def main():
     # Your main program logic goes here
     # TODO: Abstract this properly
     k_p = 1
-    k_i = 0.005
-    k_d = 0.00001
-
+    k_i = 0.5
+    k_d = 0.1
     i = 0 
     start_time = time.time()
     set_rpm = 30 # this is a dummy variable for now
     e_prev = 1 # another temp variable
     env_prev = 1000
-    f = open("logfile.txt", "a")
-    f.write(str(start_time) + "\n")
-    f.write("Set_RPM,Current_RPM,PWM_Estimate,Encoder_Val" + "\n")
+    date_time = (time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(start_time)))
+    print(date_time)
+    setup ={"Kp":[k_p],
+            "Ki": [k_i],
+            "IntegratorValue":[i],
+            "Kd": [k_d],
+            "StartTime": [start_time],
+            }
+    
+    df_setup = pd.DataFrame(setup)
+    df_setup.to_csv("setup.csv")
+
+    dynamic_dict = {"CurrEncVal":[],
+            "DeltEncVal": [],
+            "CurrTime":[],
+            "DeltTime": [],
+            "CurrRpm": [],
+            "DeltRpm": [],
+            "SetRpm":[],
+            "PWMEst":[],
+            }
+
     try:
         while True:
             # get set speed from user (in RPM)
@@ -71,7 +88,7 @@ def main():
             start_time = curr_time
             # calculate rpm
             curr_rpm = (enc_val-env_prev)*60/(diff_time*2400)
-
+            
             # get error from set point and real
             diff_rpm = float(set_rpm) - curr_rpm
             # set_rpm = curr_rpm
@@ -83,25 +100,35 @@ def main():
             env_prev = enc_val
 
             # send PWM over UART
-            msg = str(int(PWM_est)).ljust(7, '\t')
+            msg = str(int(25.15)).ljust(7, '\t')
             print(int(PWM_est), diff_rpm)
 
-            f.write(str(set_rpm) + "," + str(curr_rpm) + "," + str(PWM_est) + "," +  str(enc_val) +"\n") 
-
             send_msg(ser, msg)
-
-
+            dynamic_dict["CurrTime"].append(curr_time)
+            dynamic_dict["DeltTime"].append(diff_time)
+            dynamic_dict["SetRpm"].append(set_rpm)
+            dynamic_dict["CurrEncVal"].append(enc_val)
+            dynamic_dict["DeltEncVal"].append(env_prev)
+            dynamic_dict["CurrRpm"].append(curr_rpm)
+            dynamic_dict["DeltRpm"].append(diff_rpm)
+            dynamic_dict["PWMEst"].append(PWM_est)
 
     except KeyboardInterrupt:
         # Handle Ctrl+C to exit gracefully
         print("\nScript terminated by user.")
 
-    finally:
-        f.close()
+
+    finally:  
+        filepath = Path("Processing/Logs/" + date_time + ".csv")  
+        filepath.parent.mkdir(parents=True, exist_ok=True)  
+        df = pd.DataFrame(dynamic_dict)
+        df.to_csv(filepath)
         msg = str(0).ljust(7, '\t')
         send_msg(ser, msg)
+        # df = pd.DataFrame(dynamic_dict)
+        # df.to_csv("log.csv")
     #     # Close the serial port
-    #     ser.close()
+        ser.close()
 
 
     
