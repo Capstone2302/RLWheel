@@ -1,31 +1,36 @@
-import serial
+"""
+uart_handlr.py 
 
-# Define the serial port and its settings
-ser = serial.Serial('/dev/ttyUSB0', baudrate=115200, timeout=200) 
+Handle the UART portion of the control loop
 
+Author:
+Ashli Forbes
 
-def send_command(command):
-    print(command.encode())
+Date:
+Created - 26/11/2023
+"""
+
+# import serial
+
+def send_msg(ser, command):
     ser.write(command.encode())
 
+def receive_msg(ser):
+    line = ser.readline(12).decode().strip() 
+    
+    if (len(line) < 5): 
+        return -1 #maybe handle this a bit better
 
-try:
-    while True:
-        # Poll for user input
-        user_input = input("Enter command (1 for ON, 0 for OFF, q to quit): ")+ '\n'
-
-        # Check if the user wants to quit
-        if user_input.lower() == 'q':
-            break
-
-        # Send the command to the Bluepill
-        user_input = user_input.ljust(7, '\t')
-        send_command(user_input)
-
-except KeyboardInterrupt:
-    # Handle Ctrl+C to exit gracefully
-    print("\nScript terminated by user.")
-
-finally:
-    # Close the serial port
-    ser.close()
+    line = list(line)
+    val = 0
+    negative = False
+    for i in range(0,len(line)):
+        if line[i] == '\x00':
+            continue
+        elif line[i] == '-':
+            negative = True
+        else:
+            val = val*10 + float(line[i])
+    if negative:
+        return val*-1
+    return val 
