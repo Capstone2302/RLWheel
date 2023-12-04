@@ -37,14 +37,13 @@ def main():
     """
     # Your main program logic goes here
     # TODO: Abstract this properly
-    k_p = 1
-    k_i = 0.5
+    k_p = 0.4
+    k_i = 1
     k_d = 0.1
     i = 0 
     start_time = time.time()
-    set_rpm = 30 # this is a dummy variable for now
-    e_prev = 1 # another temp variable
-    env_prev = 1000
+    set_rpm = 230 # this is a dummy variable for now
+    e_prev = 0 # another temp variable
     date_time = (time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(start_time)))
     print(date_time)
     setup ={"Kp":[k_p],
@@ -54,10 +53,11 @@ def main():
             "StartTime": [start_time],
             }
     
-    df_setup = pd.DataFrame(setup)
-    df_setup.to_csv("setup.csv")
-
-    dynamic_dict = {"CurrEncVal":[],
+    filepath = Path("Processing/Setup/" + date_time + ".csv")  
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+    df_setup = pd.DataFrame(setup)  
+    df_setup.to_csv(filepath)
+    dynamic_dict = {
             "DeltEncVal": [],
             "CurrTime":[],
             "DeltTime": [],
@@ -69,49 +69,48 @@ def main():
 
     try:
         while True:
-            # get set speed from user (in RPM)
-            # ready, _, _ = select.select([sys.stdin], [], [], 0.6)
-            # if ready:
-            #     # Read the input and update the motor_command
-            #     set_rpm = input("Enter motor command in rpm: ")
-            #     # set_rpm = float(set_rpm)
-            #     #print("Received motor command:", set_rpm)
+        # for i in range(-300,300, 10):
 
             # get encoder value from UART
-            enc_val = receive_msg(ser)
-            if(enc_val == -1):
-                continue
+            delt_enc = receive_msg(ser)
 
             # get 'real' time    
             curr_time = time.time()
             diff_time = curr_time - start_time
             start_time = curr_time
             # calculate rpm
-            curr_rpm = (enc_val-env_prev)*60/(diff_time*2400)
+            # delt_enc = enc_val - env_prev 
+            # if (abs(delt_enc > 4000) or env_prev == 0):
+            #     env_prev = enc_val
+            #     continue
+            curr_rpm = (delt_enc)*60/(diff_time*2400)  #it seems that CCW is positive
             
             # get error from set point and real
-            diff_rpm = float(set_rpm) - curr_rpm
+            diff_rpm = float(set_rpm) - curr_rpm 
             # set_rpm = curr_rpm
 
             # using PID variables and such, calculate PWM output
+            i = i + e_prev*diff_time
 
             PWM_est = k_p*diff_rpm + k_i*(i + diff_rpm) + k_d*(diff_rpm - e_prev)
             e_prev = diff_rpm
-            env_prev = enc_val
 
             # send PWM over UART
-            msg = str(int(25.15)).ljust(7, '\t')
-            print(int(PWM_est), diff_rpm)
-
+            # if (PWM_est < 0):
+            #     PWM_est = 10
+            
+            msg = str(int(PWM_est)).ljust(7, '\t')
             send_msg(ser, msg)
-            dynamic_dict["CurrTime"].append(curr_time)
-            dynamic_dict["DeltTime"].append(diff_time)
-            dynamic_dict["SetRpm"].append(set_rpm)
-            dynamic_dict["CurrEncVal"].append(enc_val)
-            dynamic_dict["DeltEncVal"].append(env_prev)
-            dynamic_dict["CurrRpm"].append(curr_rpm)
-            dynamic_dict["DeltRpm"].append(diff_rpm)
-            dynamic_dict["PWMEst"].append(PWM_est)
+            print(int(PWM_est), curr_rpm, delt_enc)
+
+            # send_msg(ser, msg)
+            # dynamic_dict["CurrTime"].append(curr_time)
+            # dynamic_dict["DeltTime"].append(diff_time)
+            # dynamic_dict["SetRpm"].append(set_rpm)
+            # dynamic_dict["DeltEncVal"].append(delt_enc)
+            # dynamic_dict["CurrRpm"].append(curr_rpm)
+            # dynamic_dict["DeltRpm"].append(diff_rpm)
+            # dynamic_dict["PWMEst"].append(PWM_est)
 
     except KeyboardInterrupt:
         # Handle Ctrl+C to exit gracefully
@@ -119,15 +118,15 @@ def main():
 
 
     finally:  
-        filepath = Path("Processing/Logs/" + date_time + ".csv")  
-        filepath.parent.mkdir(parents=True, exist_ok=True)  
-        df = pd.DataFrame(dynamic_dict)
-        df.to_csv(filepath)
+        # filepath = Path("Processing/Logs/" + date_time + ".csv")  
+        # filepath.parent.mkdir(parents=True, exist_ok=True)  
+        # df = pd.DataFrame(dynamic_dict)
+        # df.to_csv(filepath)
         msg = str(0).ljust(7, '\t')
         send_msg(ser, msg)
         # df = pd.DataFrame(dynamic_dict)
         # df.to_csv("log.csv")
-    #     # Close the serial port
+        # Close the serial port
         ser.close()
 
 

@@ -23,10 +23,14 @@ def receive_msg(ser):
 
     line = list(line)
     val = 0
+    negative = False
     for i in range(0,len(line)):
         if line[i] == '\x00':
             continue
+        elif line[i] == '-':
+            negative = True
         else:
             val = val*10 + float(line[i])
-
+    if negative:
+        return val*-1
     return val 
