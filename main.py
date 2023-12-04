@@ -24,6 +24,7 @@ import pandas as pd
 from pathlib import Path 
 from Controls.pid_controller import MotorController #TODO: import properly
 from Controls.uart_handlr import send_msg
+
 # Define the serial port and its settings
 ser = serial.Serial('/dev/ttyUSB0', baudrate=115200, stopbits=1, timeout=100) 
 controller = MotorController()
@@ -35,46 +36,13 @@ def main():
     explaining its purpose and overall program flow.
 
     """
-    # Your main program logic goes here
-    # TODO: Abstract this properly
-    # date_time = (time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(start_time)))
-
-    # setup ={"Kp":[k_p],
-    #         "Ki": [k_i],
-    #         "IntegratorValue":[i],
-    #         "Kd": [k_d],
-    #         "StartTime": [start_time],
-    #         }
-    
-    # filepath = Path("Processing/Setup/" + date_time + ".csv")  
-    # filepath.parent.mkdir(parents=True, exist_ok=True)
-    # df_setup = pd.DataFrame(setup)  
-    # df_setup.to_csv(filepath)
-    # dynamic_dict = {
-    #         "DeltEncVal": [],
-    #         "CurrTime":[],
-    #         "DeltTime": [],
-    #         "CurrRpm": [],
-    #         "DeltRpm": [],
-    #         "SetRpm":[],
-    #         "PWMEst":[],
-    #         }
 
     try:
         while True:
-        # for i in range(-300,300, 10):
 
-            # get encoder value from UART
+            # run control loop
             controller.control_routine(ser,40)
-            # get 'real' time    
-            # send_msg(ser, msg)
-            # dynamic_dict["CurrTime"].append(curr_time)
-            # dynamic_dict["DeltTime"].append(diff_time)
-            # dynamic_dict["SetRpm"].append(set_rpm)
-            # dynamic_dict["DeltEncVal"].append(delt_enc)
-            # dynamic_dict["CurrRpm"].append(curr_rpm)
-            # dynamic_dict["DeltRpm"].append(diff_rpm)
-            # dynamic_dict["PWMEst"].append(PWM_est)
+
 
     except KeyboardInterrupt:
         # Handle Ctrl+C to exit gracefully
@@ -82,15 +50,9 @@ def main():
 
 
     finally:  
-        # filepath = Path("Processing/Logs/" + date_time + ".csv")  
-        # filepath.parent.mkdir(parents=True, exist_ok=True)  
-        # df = pd.DataFrame(dynamic_dict)
-        # df.to_csv(filepath)
+
         msg = str(0).ljust(7, '\t')
         send_msg(ser, msg)
-        # df = pd.DataFrame(dynamic_dict)
-        # df.to_csv("log.csv")
-        # Close the serial port
         ser.close()
 
 
