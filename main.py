@@ -19,16 +19,14 @@ Created - 06/10/2023
 
 # Imports
 import serial
-import time
-import pandas as pd 
-from pathlib import Path 
-from Controls.pid_controller import MotorController #TODO: import properly
+from Controls.pid_controller import MotorController 
 from Controls.uart_handlr import send_msg
 from Controls.ball_detection import BallDetector
 
 # Define the serial port and its settings
 ser = serial.Serial('/dev/ttyUSB0', baudrate=115200, stopbits=1, timeout=100) 
 controller = MotorController()
+log_perhaps = True
 def main():
     """
     The main entry point of the application.
@@ -44,10 +42,14 @@ def main():
         while True:
 
             # run control loop
+<<<<<<< HEAD
             # controller.control_routine(ser,40)
             err= ball_detector.ball_finder()
             print(err)
             controller.control_routine(ser,-err)
+=======
+            controller.control_routine(ser,40, log_perhaps)
+>>>>>>> 18b14d8 (logging fix first attempt)
 
 
     except KeyboardInterrupt:
@@ -56,13 +58,7 @@ def main():
 
 
     finally:  
-
-        msg = str(0).ljust(7, '\t')
-        send_msg(ser, msg)
-        ser.close()
-
-
-    
+        controller.exit(ser, log_perhaps)
 
 if __name__ == "__main__":
     main()
