@@ -13,9 +13,9 @@ class BallDetector:
     kp = 10
     ki = 0.1
     kd = 1
-    IM_WIDTH = 1920
-    IM_HEIGHT = 1080
-    FRAMERATE = 10
+    IM_WIDTH = 640
+    IM_HEIGHT = 480
+    FRAMERATE = 30
     loglength = 1000
 
     def __init__(self):
@@ -23,7 +23,7 @@ class BallDetector:
         self.positionLog = [0] * self.loglength
         self.errorsLog = [0] * self.loglength
         self.counter = 0
-        self.camera = cv2.VideoCapture(2, cv2.CAP_V4L2)
+        self.camera = cv2.VideoCapture(0, cv2.CAP_V4L2)
         self.start_time = time.time()
         self.prevPosition = self.setpoint
         self.position = self.setpoint
@@ -73,7 +73,6 @@ class BallDetector:
 
             # To see the centroid clearly
             if radius > 3:
-                cv2.circle(frame, (int(x), int(y)), int(radius), (0, 255, 255), 5)
                 cv2.circle(frame, center, 5, (0, 0, 255), -1)
 
         # current position of ball
@@ -122,3 +121,4 @@ class BallDetector:
         #             tfile.write('Error' + 'n')
         #             tfile.write('\n'.join(str(x) for x in self.errorsLog))
         # pass
+        return error
