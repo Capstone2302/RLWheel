@@ -55,8 +55,8 @@ class MotorController:
         print(PWM_est, diff_rpm)
         send_msg(ser, msg)
         self.counter+=1
-        if(self.counter%2==0 and log==True):
-            self.logger.log_data(delt_enc, diff_time, curr_rpm, diff_rpm)
+        if(self.counter%1==0 and log==True):
+            self.logger.log_data(delt_enc, diff_time, curr_rpm, diff_rpm, set_rpm, curr_time)
 
 
     def exit(self,ser, log):

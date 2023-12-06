@@ -42,14 +42,9 @@ def main():
         while True:
 
             # run control loop
-<<<<<<< HEAD
-            # controller.control_routine(ser,40)
             err= ball_detector.ball_finder()
             print(err)
-            controller.control_routine(ser,-err)
-=======
-            controller.control_routine(ser,40, log_perhaps)
->>>>>>> 18b14d8 (logging fix first attempt)
+            controller.control_routine(ser,-err, log_perhaps)
 
 
     except KeyboardInterrupt:

@@ -20,25 +20,31 @@ class DataLogger:
         self.date_time = (time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(self.start_time)))
         self.filepath = Path("Processing/Logs/" + self.date_time + ".csv")  
         self.delt_enc = []
+        self.set_rpm = []
         self.loop_time = []
         self.curr_rpm = []
         self.delt_rpm = []
         self.pid_vals = []
+        self.curr_time = []
         
 
     def create_file(self):
         pass
 
-    def log_data(self, delt_enc, loop_time, curr_rpm, delt_rpm):
-        self.delt_enc.insert(0,delt_enc)
-        self.loop_time.insert(0,loop_time) #TODO: take an average of loop times
-        self.curr_rpm.insert(0,curr_rpm)
-        self.delt_rpm.insert(0,delt_rpm)
+    def log_data(self, delt_enc, loop_time, curr_rpm, delt_rpm,set_rpm, curr_time):
+        self.delt_enc.append(delt_enc)
+        self.loop_time.append(loop_time) #TODO: take an average of loop times
+        self.curr_rpm.append(curr_rpm)
+        self.delt_rpm.append(delt_rpm)
+        self.set_rpm.append(set_rpm)
+        self.curr_time.append(curr_time)
 
     def write_file(self):
         data = {"DeltEncoder": self.delt_enc,
-                "LoopTimess": self.loop_time,
+                "LoopTimes": self.loop_time,
                 "CurrRpm": self.curr_rpm,
-                "ChangeInRpm":self.delt_rpm}
+                "ChangeInRpm":self.delt_rpm,
+                "SetRpm": self.set_rpm,
+                "CurrTime": self.curr_time}
         df = pd.DataFrame(data)
         df.to_csv(self.filepath)
