@@ -9,21 +9,22 @@ import sys
 class BallDetector:
     lower_ball = np.array([0,0,0]) #BGR encoding
     upper_ball = np.array([120,120,120]) #BGR encoding
-    setpoint = 120/2
     kp = 10
     ki = 0.1
     kd = 1
-    IM_WIDTH = 640
-    IM_HEIGHT = 480
+    IM_WIDTH = 480
+    IM_HEIGHT = 360
     FRAMERATE = 30
     loglength = 1000
+    setpoint = IM_WIDTH/2
+    cutoff = 200
 
     def __init__(self):
         self.controlLoopTimes = [0] * 100
         self.positionLog = [0] * self.loglength
         self.errorsLog = [0] * self.loglength
         self.counter = 0
-        self.camera = cv2.VideoCapture(0, cv2.CAP_V4L2)
+        self.camera = cv2.VideoCapture(2, cv2.CAP_V4L2)
         self.start_time = time.time()
         self.prevPosition = self.setpoint
         self.position = self.setpoint
@@ -52,7 +53,9 @@ class BallDetector:
         #     return x
         # return 1/32*x**2+3/8*x+25/8
         return x
-    def control_routine(self):
+    def ball_finder(self):
+
+        # returns error of ball position from setpoin
         _, frame = self.camera.read()
 
         blurred = cv2.GaussianBlur(frame, (3, 3), 0)
@@ -66,13 +69,13 @@ class BallDetector:
             c = max(contours, key=cv2.contourArea)
             ((x, y), radius) = cv2.minEnclosingCircle(c)
             M = cv2.moments(c)
-            if M['m00'] != 0:
+            if M['m00'] != 0 and int(M["m01"] / M["m00"]) < self.cutoff:
                 center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
             else:
-                center = (int(BallDetector.setpoint), int(120))
+                center = (int(BallDetector.setpoint), int(10))
 
             # To see the centroid clearly
-            if radius > 3:
+            if radius > 2:
                 cv2.circle(frame, center, 5, (0, 0, 255), -1)
 
         # current position of ball
@@ -94,6 +97,7 @@ class BallDetector:
 
         # display the resulting frame
         cv2.line(frame,(int(self.setpoint),0),(int(self.setpoint),240), (255,0,0),5)
+        cv2.line(frame,(0,self.cutoff),(int(self.IM_WIDTH),self.cutoff), (255,0,0),5)
         cv2.imshow('Color mask', colorMask)
         cv2.imshow('Frame',frame)
         cv2.waitKey(1)

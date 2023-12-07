@@ -27,7 +27,7 @@ from Controls.uart_handlr import send_msg
 from Controls.ball_detection import BallDetector
 
 # Define the serial port and its settings
-# ser = serial.Serial('/dev/ttyUSB0', baudrate=115200, stopbits=1, timeout=100) 
+ser = serial.Serial('/dev/ttyUSB0', baudrate=115200, stopbits=1, timeout=100) 
 controller = MotorController()
 def main():
     """
@@ -38,15 +38,16 @@ def main():
 
     """
 
-    ball_detector = BallDetector();
+    ball_detector = BallDetector()
 
     try:
         while True:
 
             # run control loop
             # controller.control_routine(ser,40)
-            ball_detector.control_routine()
-            print("in")
+            err= ball_detector.ball_finder()
+            print(err)
+            controller.control_routine(ser,-err)
 
 
     except KeyboardInterrupt:
@@ -57,8 +58,8 @@ def main():
     finally:  
 
         msg = str(0).ljust(7, '\t')
-        # send_msg(ser, msg)
-        # ser.close()
+        send_msg(ser, msg)
+        ser.close()
 
 
     
