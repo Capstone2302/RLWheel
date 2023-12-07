@@ -4,6 +4,7 @@ import numpy as np
 import time
 import imutils
 import sys
+from .data_logger import DataLogger_Ball
 
 # Continuously capture frames from the camera
 class BallDetector:
@@ -29,6 +30,7 @@ class BallDetector:
         self.prevPosition = self.setpoint
         self.position = self.setpoint
         self.speed = 0
+        self.logger = DataLogger_Ball()
 
         if ((self.camera == None) or (not self.camera.isOpened())):
             print('\n\n')
@@ -113,16 +115,10 @@ class BallDetector:
         self.errorsLog.pop()
         self.counter+=1
         if(self.counter%10==0):
-            print("Average: " + str(np.mean(self.controlLoopTimes)) + 
-                " s. Maximum: " + str(max(self.controlLoopTimes)) + 
-                " s. Minimum: " + str(min(self.controlLoopTimes)) + "s"
-                + " Pwm: " + str(duty_cycle) + "Error: " + str(error))
-        #     if(self.counter%loglength==0):
-        #         with open('/home/pi/Documents/WheelLogs/PositionLogs/PositionLog' + str(time.time_ns()) + '.txt', 'w') as tfile:
-        #             tfile.write('Position' + 'n')
-        #             tfile.write('\n'.join(str(x) for x in self.positionLog))
-        #         with open('/home/pi/Documents/WheelLogs/ErrorLogs/ErrorLog' + str(time.time_ns()) + '.txt', 'w') as tfile:
-        #             tfile.write('Error' + 'n')
-        #             tfile.write('\n'.join(str(x) for x in self.errorsLog))
-        # pass
+            self.logger.log_data(error,np.mean(self.controlLoopTimes),self.start_time)
+            
         return error
+    
+    def exit(self,log):
+        if (log == True):
+            self.logger.write_file()

@@ -48,3 +48,29 @@ class DataLogger:
                 "CurrTime": self.curr_time}
         df = pd.DataFrame(data)
         df.to_csv(self.filepath)
+
+class DataLogger_Ball:
+    def __init__(self):
+        self.start_time = time.time()
+        self.date_time = (time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(self.start_time)))
+        self.filepath = Path("Processing/Ball/" + self.date_time + ".csv")  
+        self.pos_err = []
+        self.loop_time = []
+        self.curr_time = []
+
+
+    def create_file(self):
+        pass
+
+    def log_data(self, pos_err, loop_time, curr_time):
+        self.pos_err.append(pos_err)
+        self.loop_time.append(loop_time) #TODO: take an average of loop times
+        self.curr_time.append(curr_time)
+
+    def write_file(self):
+        data = {"PositionErr": self.pos_err,
+                "LoopTimes": self.loop_time,
+                "CurrTime": self.curr_time}
+        df = pd.DataFrame(data)
+        df.to_csv(self.filepath)
+

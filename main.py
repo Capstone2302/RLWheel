@@ -54,6 +54,7 @@ def main():
 
     finally:  
         controller.exit(ser, log_perhaps)
+        ball_detector.exit(log_perhaps)
 
 if __name__ == "__main__":
     main()
