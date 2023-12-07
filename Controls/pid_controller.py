@@ -19,9 +19,9 @@ from .uart_handlr import receive_msg, send_msg
 
 class MotorController:
     def __init__(self):
-        self.k_p = 0.4
-        self.k_i = 1
-        self.k_d = 0.1
+        self.k_p = 4
+        self.k_i = 0
+        self.k_d = 0
         self.integrator_val = 0 
         self.start_time = time.time()
         self.e_prev = 0
@@ -37,7 +37,7 @@ class MotorController:
             # get error from set point and real
             curr_rpm = (delt_enc)*60/(diff_time*2400)  #it seems that CCW is positive
             
-            diff_rpm = float(set_rpm) - curr_rpm 
+            diff_rpm = float(set_rpm) # - curr_rpm 
             # set_rpm = curr_rpm
 
             # using PID variables and such, calculate PWM output
@@ -47,6 +47,6 @@ class MotorController:
             self.e_prev = diff_rpm
 
             # send message over UART
-            print(PWM_est, set_rpm)
+            print(PWM_est, delt_enc)
             msg = str(int(PWM_est)).ljust(7, '\t')
             send_msg(ser, msg)

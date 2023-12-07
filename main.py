@@ -24,6 +24,7 @@ import pandas as pd
 from pathlib import Path 
 from Controls.pid_controller import MotorController #TODO: import properly
 from Controls.uart_handlr import send_msg
+from Controls.ball_detection import BallDetector
 
 # Define the serial port and its settings
 ser = serial.Serial('/dev/ttyUSB0', baudrate=115200, stopbits=1, timeout=100) 
@@ -37,11 +38,16 @@ def main():
 
     """
 
+    ball_detector = BallDetector()
+
     try:
         while True:
 
             # run control loop
-            controller.control_routine(ser,40)
+            # controller.control_routine(ser,40)
+            err= ball_detector.ball_finder()
+            print(err)
+            controller.control_routine(ser,-err)
 
 
     except KeyboardInterrupt:
