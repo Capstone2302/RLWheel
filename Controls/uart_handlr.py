@@ -18,7 +18,7 @@ def receive_msg(ser):
         line = ser.readline(12).decode().strip() 
         
         if (len(line) < 5): 
-            return -1 #maybe handle this a bit better
+            return -1 
 
         line = list(line)
         val = 0

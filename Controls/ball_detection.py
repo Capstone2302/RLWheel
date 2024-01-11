@@ -6,10 +6,11 @@ import imutils
 import sys
 from .data_logger import DataLogger_Ball
 
+
 # Continuously capture frames from the camera
 class BallDetector:
-    lower_ball = np.array([0,0,0]) #BGR encoding
-    upper_ball = np.array([120,120,120]) #BGR encoding
+    lower_ball = np.array([0, 0, 0])  # BGR encoding
+    upper_ball = np.array([120, 120, 120])  # BGR encoding
     kp = 10
     ki = 0.1
     kd = 1
@@ -17,7 +18,7 @@ class BallDetector:
     IM_HEIGHT = 360
     FRAMERATE = 30
     loglength = 1000
-    setpoint = IM_WIDTH/2
+    setpoint = IM_WIDTH / 2
     cutoff = 200
 
     def __init__(self):
@@ -32,31 +33,23 @@ class BallDetector:
         self.speed = 0
         self.logger = DataLogger_Ball()
 
-        if ((self.camera == None) or (not self.camera.isOpened())):
-            print('\n\n')
-            print('Error - could not open video device.')
-            print('\n\n')
+        if (self.camera == None) or (not self.camera.isOpened()):
+            print("\n\n")
+            print("Error - could not open video device.")
+            print("\n\n")
             exit(0)
 
         self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, self.IM_WIDTH)
         self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, self.IM_HEIGHT)
         self.camera.set(cv2.CAP_PROP_FPS, self.FRAMERATE)
 
-        
-    def errorFunc(x,x_dot):
-        return 0.75*BallDetector.gain(x)+0.02*x_dot
+    def errorFunc(x, x_dot):
+        return 0.75 * BallDetector.gain(x) + 0.02 * x_dot
 
     def gain(x):
-        # if(x<-10):
-        #     return -1*(1/32*x**2-3/8*x+25/8)
-        # if(x<0):
-        #     return x
-        # if(x<10):
-        #     return x
-        # return 1/32*x**2+3/8*x+25/8
         return x
-    def ball_finder(self):
 
+    def ball_finder(self):
         # returns error of ball position from setpoin
         _, frame = self.camera.read()
 
@@ -64,14 +57,15 @@ class BallDetector:
 
         colorMask = cv2.inRange(frame, BallDetector.lower_ball, BallDetector.upper_ball)
 
-        contours, _ = cv2.findContours(colorMask, cv2.RETR_EXTERNAL,
-                            cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(
+            colorMask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+        )
 
         if contours:
             c = max(contours, key=cv2.contourArea)
             ((x, y), radius) = cv2.minEnclosingCircle(c)
             M = cv2.moments(c)
-            if M['m00'] != 0 and int(M["m01"] / M["m00"]) < self.cutoff:
+            if M["m00"] != 0 and int(M["m01"] / M["m00"]) < self.cutoff:
                 center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
             else:
                 center = (int(BallDetector.setpoint), int(10))
@@ -88,9 +82,9 @@ class BallDetector:
             speed = (self.prevPosition - self.position) / delta
         except:
             self.position = self.setpoint
-            speed = 0 
+            speed = 0
             delta = 0
-        
+
         # Compute error
         error = self.setpoint - self.position
 
@@ -98,27 +92,30 @@ class BallDetector:
         duty_cycle = BallDetector.errorFunc(error, speed)
 
         # display the resulting frame
-        cv2.line(frame,(int(self.setpoint),0),(int(self.setpoint),240), (255,0,0),5)
-        cv2.line(frame,(0,self.cutoff),(int(self.IM_WIDTH),self.cutoff), (255,0,0),5)
-        cv2.imshow('Color mask', colorMask)
-        cv2.imshow('Frame',frame)
+        cv2.line(
+            frame, (int(self.setpoint), 0), (int(self.setpoint), 240), (255, 0, 0), 5
+        )
+        cv2.line(
+            frame, (0, self.cutoff), (int(self.IM_WIDTH), self.cutoff), (255, 0, 0), 5
+        )
+        cv2.imshow("Color mask", colorMask)
+        cv2.imshow("Frame", frame)
         cv2.waitKey(1)
-        
-        
+
         self.start_time = time.time()
-        self.controlLoopTimes.insert(0,delta)
+        self.controlLoopTimes.insert(0, delta)
         self.controlLoopTimes.pop()
-        self.positionLog.insert(0,self.position)
+        self.positionLog.insert(0, self.position)
         self.positionLog.pop()
-        
-        self.errorsLog.insert(0,BallDetector.errorFunc(error, speed))
+
+        self.errorsLog.insert(0, BallDetector.errorFunc(error, speed))
         self.errorsLog.pop()
-        self.counter+=1
-        if(self.counter%10==0):
-            self.logger.log_data(error,np.mean(self.controlLoopTimes),self.start_time)
-            
+        self.counter += 1
+        if self.counter % 10 == 0:
+            self.logger.log_data(error, np.mean(self.controlLoopTimes), self.start_time)
+
         return error
-    
-    def exit(self,log):
-        if (log == True):
+
+    def exit(self, log):
+        if log:
             self.logger.write_file()
