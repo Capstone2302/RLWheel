@@ -25,8 +25,9 @@ from Controls.ball_detection import BallDetector
 
 # Define the serial port and its settings
 ser = serial.Serial('/dev/ttyUSB0', baudrate=115200, stopbits=1, timeout=100) 
+print("serial port set up")
 controller = MotorController()
-log_perhaps = True
+log_perhaps = False
 
 def main():
     """
@@ -41,14 +42,11 @@ def main():
 
     try:
         while True:
+            # controller.control_routine(ser,-80, log_perhaps)
 
             # run control loop
-            if count<500 or count>1000:
-                controller.control_routine(ser,50, log_perhaps)
-            else:
-                controller.control_routine(ser,-50, log_perhaps)
-            count +=1
-            print(count)
+            err = BallDetector.ball_finder
+            controller.control_routine(ser,err, log_perhaps)
 
 
     except KeyboardInterrupt:

@@ -40,7 +40,9 @@ class MotorController:  # add class definitions
         # get error from set point and curr_rpm
         curr_rpm = (delt_enc * 60) / (diff_time * 2400)  # CCW is positive
 
-        diff_rpm = float(set_rpm) - curr_rpm
+        print(set_rpm)
+
+        diff_rpm = set_rpm - curr_rpm
         # set_rpm = curr_rpm
 
         # using PID variables and such, calculate PWM output

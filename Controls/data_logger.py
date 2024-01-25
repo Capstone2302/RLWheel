@@ -33,7 +33,7 @@ class DataLogger:
 
     def log_data(self, delt_enc, loop_time, curr_rpm, delt_rpm, set_rpm, curr_time):
         self.delt_enc.append(delt_enc)
-        self.loop_time.append(loop_time)  # TODO: take an average of loop times
+        self.loop_time.append(loop_time)  
         self.curr_rpm.append(curr_rpm)
         self.delt_rpm.append(delt_rpm)
         self.set_rpm.append(set_rpm)
