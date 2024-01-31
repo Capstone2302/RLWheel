@@ -9,8 +9,8 @@ from .data_logger import DataLogger_Ball
 
 # Continuously capture frames from the camera
 class BallDetector:
-    lower_ball = np.array([0, 0, 0])  # BGR encoding
-    upper_ball = np.array([120, 120, 120])  # BGR encoding
+    lower_ball = np.array([10, 100, 10])  # BGR encoding
+    upper_ball = np.array([90, 240, 120])  # BGR encoding
     kp = 10
     ki = 0.1
     kd = 1

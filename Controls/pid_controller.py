@@ -54,7 +54,7 @@ class MotorController:  # add class definitions
             + self.k_d * (diff_rpm - self.e_prev)
         )
         self.e_prev = diff_rpm
-        print(PWM_est)
+        PWM_est = set_rpm
         # send message over UART
         msg = str(int(PWM_est)).ljust(7, "\t")
         send_msg(ser, msg)

@@ -45,8 +45,10 @@ def main():
             # controller.control_routine(ser,-80, log_perhaps)
 
             # run control loop
-            err = BallDetector.ball_finder
-            controller.control_routine(ser,-230, log_perhaps)
+            # err = ball_detector.ball_finder()
+            for i in range(0,100,1):
+                print(i)
+                controller.control_routine(ser,i, log_perhaps)
 
 
     except KeyboardInterrupt:
