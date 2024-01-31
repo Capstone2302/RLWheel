@@ -20,9 +20,9 @@ from .data_logger import DataLogger
 
 class MotorController:  # add class definitions
     def __init__(self):
-        self.k_p = 7
-        self.k_i = 2
-        self.k_d = 0.5
+        self.k_p = 4
+        self.k_i = 0
+        self.k_d = 0
         self.integrator_val = 0
         self.start_time = time.time()
         self.e_prev = 0
@@ -54,7 +54,7 @@ class MotorController:  # add class definitions
             + self.k_d * (diff_rpm - self.e_prev)
         )
         self.e_prev = diff_rpm
-
+        print(PWM_est)
         # send message over UART
         msg = str(int(PWM_est)).ljust(7, "\t")
         send_msg(ser, msg)
