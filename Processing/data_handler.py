@@ -19,7 +19,7 @@ import pandas as pd
 class DataProcessor:
     def __init__(self):
         log_files = glob.glob("Processing/Logs/*.csv")
-        log_files.sort(key=os.path.getmtime, reverse=True)
+        log_files.sort(key=os.path.getctime, reverse=True)
         self.log_files_list = log_files
 
     def get_log_files_list(self):

@@ -20,7 +20,7 @@ from .data_logger import DataLogger
 
 class MotorController:  # add class definitions
     def __init__(self):
-        self.k_p = 4
+        self.k_p =4
         self.k_i = 0
         self.k_d = 0
         self.integrator_val = 0
@@ -40,10 +40,7 @@ class MotorController:  # add class definitions
         # get error from set point and curr_rpm
         curr_rpm = (delt_enc * 60) / (diff_time * 2400)  # CCW is positive
 
-        print(set_rpm)
-
         diff_rpm = set_rpm - curr_rpm
-        # set_rpm = curr_rpm
 
         # using PID variables and such, calculate PWM output
         self.integrator_val = self.integrator_val + self.e_prev * diff_time
@@ -54,7 +51,6 @@ class MotorController:  # add class definitions
             + self.k_d * (diff_rpm - self.e_prev)
         )
         self.e_prev = diff_rpm
-        PWM_est = set_rpm
         # send message over UART
         msg = str(int(PWM_est)).ljust(7, "\t")
         send_msg(ser, msg)
@@ -62,6 +58,25 @@ class MotorController:  # add class definitions
         if self.counter % 1 == 0 and log:
             self.logger.log_data(
                 delt_enc, diff_time, curr_rpm, diff_rpm, set_rpm, curr_time
+            )
+
+    def pwm_test_routine(self, ser, set_pwm, log):
+        # get encoder value from UART
+        delt_enc = receive_msg(ser)
+        # get 'real' time
+        curr_time = time.time()
+        diff_time = curr_time - self.start_time
+        self.start_time = curr_time
+
+        # get error from set point and curr_rpm
+        curr_rpm = (delt_enc * 60) / (diff_time * 2400)  # CCW is positive
+        # send message over UART
+        msg = str(int(set_pwm)).ljust(7, "\t")
+        send_msg(ser, msg)
+        self.counter += 1
+        if self.counter % 1 == 0 and log:
+            self.logger.log_data(
+                delt_enc, diff_time, curr_rpm, -1, -1, curr_time,set_pwm
             )
 
     def exit(self, ser, log):

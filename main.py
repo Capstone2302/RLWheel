@@ -19,6 +19,7 @@ Created - 06/10/2023
 
 # Imports
 import serial
+import time
 from Controls.pid_controller import MotorController 
 from Controls.uart_handlr import send_msg
 from Controls.ball_detection import BallDetector
@@ -38,7 +39,7 @@ def main():
 
     """
     count = 0
-    ball_detector = BallDetector()
+    # ball_detector = BallDetector()
 
     try:
         while True:
@@ -46,9 +47,8 @@ def main():
 
             # run control loop
             # err = ball_detector.ball_finder()
-            for i in range(0,100,1):
-                print(i)
-                controller.control_routine(ser,i, log_perhaps)
+            for i in range(500,-500,-1):
+                controller.pwm_test_routine(ser,i/10, log_perhaps)
 
 
     except KeyboardInterrupt:
