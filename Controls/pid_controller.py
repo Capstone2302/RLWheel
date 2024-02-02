@@ -20,13 +20,12 @@ from .data_logger import DataLogger
 
 class MotorController:  # add class definitions
     def __init__(self):
-        self.k_p =4
+        self.k_p = 1
         self.k_i = 0
         self.k_d = 0
         self.integrator_val = 0
         self.start_time = time.time()
         self.e_prev = 0
-        self.counter = 0
         self.logger = DataLogger()
 
     def control_routine(self, ser, set_rpm, log):
@@ -51,13 +50,19 @@ class MotorController:  # add class definitions
             + self.k_d * (diff_rpm - self.e_prev)
         )
         self.e_prev = diff_rpm
-        # send message over UART
+
+        if PWM_est>0: # initial stab at compensation for dead zone, TODO: make better
+            PWM_est += 22
+        elif PWM_est < 0:
+            PWM_est -= 22
+        else:   
+            PWM_est = 0
+        # send message over UART   
         msg = str(int(PWM_est)).ljust(7, "\t")
         send_msg(ser, msg)
-        self.counter += 1
-        if self.counter % 1 == 0 and log:
+        if log:
             self.logger.log_data(
-                delt_enc, diff_time, curr_rpm, diff_rpm, set_rpm, curr_time
+                delt_enc, diff_time, curr_rpm, diff_rpm, set_rpm, curr_time, PWM_est
             )
 
     def pwm_test_routine(self, ser, set_pwm, log):
@@ -73,10 +78,9 @@ class MotorController:  # add class definitions
         # send message over UART
         msg = str(int(set_pwm)).ljust(7, "\t")
         send_msg(ser, msg)
-        self.counter += 1
-        if self.counter % 1 == 0 and log:
+        if log:
             self.logger.log_data(
-                delt_enc, diff_time, curr_rpm, -1, -1, curr_time,set_pwm
+                delt_enc, diff_time, curr_rpm, -1, -1, curr_time, set_pwm
             )
 
     def exit(self, ser, log):

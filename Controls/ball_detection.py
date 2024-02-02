@@ -2,8 +2,6 @@ from __future__ import print_function
 import cv2
 import numpy as np
 import time
-import imutils
-import sys
 from .data_logger import DataLogger_Ball
 
 
@@ -25,7 +23,6 @@ class BallDetector:
         self.controlLoopTimes = [0] * 100
         self.positionLog = [0] * self.loglength
         self.errorsLog = [0] * self.loglength
-        self.counter = 0
         self.camera = cv2.VideoCapture(2, cv2.CAP_V4L2)
         self.start_time = time.time()
         self.prevPosition = self.setpoint
@@ -33,7 +30,7 @@ class BallDetector:
         self.speed = 0
         self.logger = DataLogger_Ball()
 
-        if (self.camera == None) or (not self.camera.isOpened()):
+        if (self.camera == None) or (not self.camera.isOpened()): #TODO: clean up 
             print("\n\n")
             print("Error - could not open video device.")
             print("\n\n")
@@ -49,7 +46,7 @@ class BallDetector:
     def gain(x):
         return x
 
-    def ball_finder(self):
+    def ball_finder(self,log):
         # returns error of ball position from setpoin
         _, frame = self.camera.read()
 
@@ -88,9 +85,6 @@ class BallDetector:
         # Compute error
         error = self.setpoint - self.position
 
-        # Map output to PWM signal
-        duty_cycle = BallDetector.errorFunc(error, speed)
-
         # display the resulting frame
         cv2.line(
             frame, (int(self.setpoint), 0), (int(self.setpoint), 240), (255, 0, 0), 5
@@ -110,8 +104,7 @@ class BallDetector:
 
         self.errorsLog.insert(0, BallDetector.errorFunc(error, speed))
         self.errorsLog.pop()
-        self.counter += 1
-        if self.counter % 10 == 0:
+        if log:
             self.logger.log_data(error, np.mean(self.controlLoopTimes), self.start_time)
 
         return error
