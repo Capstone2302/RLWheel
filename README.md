@@ -6,7 +6,8 @@ pip pacakages
 - pyserial
 - opencv-python
 - imutils
-- pandas (?)
+- pandas
 - numpy
+- time
 
-## UART Documentation
+this is the branch for tuning the Motor PID, this is to be the platform for the RL Model
