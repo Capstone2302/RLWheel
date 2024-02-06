@@ -10,4 +10,5 @@ pip pacakages
 - numpy
 - time
 
-this is the branch for tuning the Motor PID, this is to be the platform for the RL Model
+## Motor PID
+This is the branch for tuning the Motor PID, this is to be the platform for the RL Model. This was tuned without running the ball finding code. 

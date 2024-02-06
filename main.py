@@ -28,7 +28,7 @@ from Controls.ball_detection import BallDetector
 ser = serial.Serial('/dev/ttyUSB0', baudrate=115200, stopbits=1, timeout=100) 
 print("serial port set up")
 controller = MotorController()
-log_perhaps = False
+log_perhaps = True
 
 def main():
     """
@@ -45,16 +45,10 @@ def main():
         while True:
             # controller.control_routine(ser,-80, log_perhaps)
 
-            # run control loop
-            err = ball_detector.ball_finder(log_perhaps)            
-            # controller.control_routine(ser,-err, log_perhaps)
-            for i in range(800, -800,-1): #TODO: deal with the slipping of the negative values on start up 
-                err = ball_detector.ball_finder(log_perhaps)
-                if i>0:
-                    i +=220
-                elif i <0:
-                    i -=220
-                controller.pwm_test_routine(ser,i/10, log_perhaps)
+            # run control loop          
+            # for i in range(800, -800,-1): #TODO: deal with the slipping of the negative values on start up 
+            #     
+            controller.PID_response_test2(ser,100,100,log_perhaps)
 
 
     except KeyboardInterrupt:
