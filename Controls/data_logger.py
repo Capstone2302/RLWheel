@@ -32,9 +32,11 @@ class DataLogger:
         self.pid_vals = []
         self.curr_time = []
 
-    def log_data(self, delt_enc, loop_time, curr_rpm, delt_rpm, set_rpm, curr_time,pwm_req):
+    def log_data(
+        self, delt_enc, loop_time, curr_rpm, delt_rpm, set_rpm, curr_time, pwm_req
+    ):
         self.delt_enc.append(delt_enc)
-        self.loop_time.append(loop_time)  
+        self.loop_time.append(loop_time)
         self.curr_rpm.append(curr_rpm)
         self.delt_rpm.append(delt_rpm)
         self.set_rpm.append(set_rpm)
@@ -49,7 +51,7 @@ class DataLogger:
             "ChangeInRpm": self.delt_rpm,
             "SetRpm": self.set_rpm,
             "CurrTime": self.curr_time,
-            "PWMReq": self.pwm_req
+            "PWMReq": self.pwm_req,
         }
         df = pd.DataFrame(data)
         df.to_csv(self.filepath)

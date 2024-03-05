@@ -30,7 +30,7 @@ class BallDetector:
         self.speed = 0
         self.logger = DataLogger_Ball()
 
-        if (self.camera == None) or (not self.camera.isOpened()): #TODO: clean up 
+        if (self.camera == None) or (not self.camera.isOpened()):  # TODO: clean up
             print("\n\n")
             print("Error - could not open video device.")
             print("\n\n")
@@ -46,7 +46,7 @@ class BallDetector:
     def gain(x):
         return x
 
-    def ball_finder(self,log):
+    def ball_finder(self, log):
         # returns error of ball position from setpoin
         _, frame = self.camera.read()
 

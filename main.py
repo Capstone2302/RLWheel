@@ -19,16 +19,16 @@ Created - 06/10/2023
 
 # Imports
 import serial
-import time
-from Controls.pid_controller import MotorController 
+from Controls.pid_controller import MotorController
 from Controls.uart_handlr import send_msg
 from Controls.ball_detection import BallDetector
 
 # Define the serial port and its settings
-ser = serial.Serial('/dev/ttyUSB0', baudrate=115200, stopbits=1, timeout=100) 
+ser = serial.Serial("/dev/ttyUSB0", baudrate=115200, stopbits=1, timeout=100)
 print("serial port set up")
 controller = MotorController()
-log_perhaps = True
+log_perhaps = False
+
 
 def main():
     """
@@ -38,27 +38,28 @@ def main():
     explaining its purpose and overall program flow.
 
     """
-    count = 0
     ball_detector = BallDetector()
 
     try:
         while True:
-            # controller.control_routine(ser,-80, log_perhaps)
+            # controller.PID_response_test1(ser,400,log_perhaps)
+            max = 200
 
-            # run control loop          
-            # for i in range(800, -800,-1): #TODO: deal with the slipping of the negative values on start up 
-            #     
-            controller.PID_response_test2(ser,100,100,log_perhaps)
+            # controller.PID_response_test2(ser,max,10000,log_perhaps)
+            # controller.control_routine(ser,30,log_perhaps)
 
+            controller.control_routine(ser, 30, log_perhaps)
 
     except KeyboardInterrupt:
         # Handle Ctrl+C to exit gracefully
         print("\nScript terminated by user.")
 
-
-    finally:  
+    finally:
         controller.exit(ser, log_perhaps)
-        ball_detector.exit(log_perhaps)
+        ball_detector.exit(
+            log_perhaps
+        )  # TODO: fix such that when we are not logging ball, that it automatically does not create a file for ball logging
+
 
 if __name__ == "__main__":
     main()
