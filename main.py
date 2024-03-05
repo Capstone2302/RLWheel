@@ -19,9 +19,7 @@ Created - 06/10/2023
 
 # Imports
 import serial
-import time
 from Controls.pid_controller import MotorController
-from Controls.uart_handlr import send_msg
 from Controls.ball_detection import BallDetector
 
 # Define the serial port and its settings
@@ -44,7 +42,6 @@ def main():
     try:
         while True:
             err = ball_detector.ball_finder(log_perhaps)
-            # controller.control_routine(ser,-80, log_perhaps)
             controller.control_routine(ser, err, log_perhaps)
 
     except KeyboardInterrupt:

@@ -20,15 +20,15 @@ from .data_logger import DataLogger
 
 class MotorController:  # add class definitions
     def __init__(self):
-        self.k_p = 4
-        self.k_i = 1
-        self.k_d = 0.5
+        self.k_p = 4.25
+        self.k_i = 0
+        self.k_d = 2.8
         self.integrator_val = 0
         self.start_time = time.time()
         self.e_prev = 0
         self.logger = DataLogger()
 
-    def control_routine(self, ser, set_rpm, log):
+    def control_routine(self, ser, curr_pos, log):
         # get encoder value from UART
         delt_enc = receive_msg(ser)
         # get 'real' time
@@ -39,36 +39,38 @@ class MotorController:  # add class definitions
         # get error from set point and curr_rpm
         curr_rpm = (delt_enc * 60) / (diff_time * 2400)  # CCW is positive
 
-        diff_rpm = 0 - set_rpm
-
+        diff_pos = 0 - curr_pos
+        if (abs(diff_pos) < 15):
+            diff_pos = 0
         # using PID variables and such, calculate PWM output
         self.integrator_val = self.integrator_val + self.e_prev * diff_time
 
         PWM_est = (
-            self.k_p * diff_rpm
-            + self.k_i * (self.integrator_val + diff_rpm)
-            + self.k_d * (diff_rpm - self.e_prev)
+            self.k_p * diff_pos
+            + self.k_i * (self.integrator_val + diff_pos)
+            + self.k_d * (diff_pos - self.e_prev)
         )
-        self.e_prev = diff_rpm
-        # print( delt_enc, set_rpm)
+        if (diff_pos == 0 ):
+            self.integrator_val = 0
+        self.e_prev = diff_pos
+        print(PWM_est)
         msg = str(int(PWM_est)).ljust(7, "\t")
         send_msg(ser, msg)
         if log:
             self.logger.log_data(
-                delt_enc, diff_time, curr_rpm, diff_rpm, set_rpm, curr_time, PWM_est
+                delt_enc, diff_time, curr_rpm, diff_pos, curr_pos, curr_time, PWM_est
             )
 
     def pwm_test_routine(self, ser, set_pwm, log):
         # get encoder value from UART
         delt_enc = receive_msg(ser)
-        # get 'real' time
         curr_time = time.time()
         diff_time = curr_time - self.start_time
         self.start_time = curr_time
 
         # get error from set point and curr_rpm
         curr_rpm = (delt_enc * 60) / (diff_time * 2400)  # CCW is positive
-        print(curr_rpm, delt_enc, set_pwm)
+
         # send message over UART
         msg = str(int(set_pwm)).ljust(7, "\t")
         send_msg(ser, msg)
