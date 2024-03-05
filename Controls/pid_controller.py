@@ -21,8 +21,8 @@ from .data_logger import DataLogger
 class MotorController:  # add class definitions
     def __init__(self):
         self.k_p = 4
-        self.k_i = 0.5
-        self.k_d = 0
+        self.k_i = 1
+        self.k_d = 0.5
         self.integrator_val = 0
         self.start_time = time.time()
         self.e_prev = 0
