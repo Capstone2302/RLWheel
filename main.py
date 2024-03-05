@@ -20,15 +20,16 @@ Created - 06/10/2023
 # Imports
 import serial
 import time
-from Controls.pid_controller import MotorController 
+from Controls.pid_controller import MotorController
 from Controls.uart_handlr import send_msg
 from Controls.ball_detection import BallDetector
 
 # Define the serial port and its settings
-ser = serial.Serial('/dev/ttyUSB0', baudrate=115200, stopbits=1, timeout=100) 
+ser = serial.Serial("/dev/ttyUSB0", baudrate=115200, stopbits=1, timeout=100)
 print("serial port set up")
 controller = MotorController()
 log_perhaps = False
+
 
 def main():
     """
@@ -38,33 +39,22 @@ def main():
     explaining its purpose and overall program flow.
 
     """
-    count = 0
     ball_detector = BallDetector()
 
     try:
         while True:
+            err = ball_detector.ball_finder(log_perhaps)
             # controller.control_routine(ser,-80, log_perhaps)
-
-            # run control loop
-            err = ball_detector.ball_finder(log_perhaps)            
-            # controller.control_routine(ser,-err, log_perhaps)
-            for i in range(800, -800,-1): #TODO: deal with the slipping of the negative values on start up 
-                err = ball_detector.ball_finder(log_perhaps)
-                if i>0:
-                    i +=220
-                elif i <0:
-                    i -=220
-                controller.pwm_test_routine(ser,i/10, log_perhaps)
-
+            controller.control_routine(ser, err, log_perhaps)
 
     except KeyboardInterrupt:
         # Handle Ctrl+C to exit gracefully
         print("\nScript terminated by user.")
 
-
-    finally:  
+    finally:
         controller.exit(ser, log_perhaps)
         ball_detector.exit(log_perhaps)
+
 
 if __name__ == "__main__":
     main()

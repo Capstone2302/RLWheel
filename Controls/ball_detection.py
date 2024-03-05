@@ -9,9 +9,6 @@ from .data_logger import DataLogger_Ball
 class BallDetector:
     lower_ball = np.array([10, 100, 10])  # BGR encoding
     upper_ball = np.array([90, 240, 120])  # BGR encoding
-    kp = 10
-    ki = 0.1
-    kd = 1
     IM_WIDTH = 480
     IM_HEIGHT = 360
     FRAMERATE = 30
@@ -30,7 +27,7 @@ class BallDetector:
         self.speed = 0
         self.logger = DataLogger_Ball()
 
-        if (self.camera == None) or (not self.camera.isOpened()): #TODO: clean up 
+        if (self.camera == None) or (not self.camera.isOpened()):  # TODO: clean up
             print("\n\n")
             print("Error - could not open video device.")
             print("\n\n")
@@ -46,7 +43,7 @@ class BallDetector:
     def gain(x):
         return x
 
-    def ball_finder(self,log):
+    def ball_finder(self, log):
         # returns error of ball position from setpoin
         _, frame = self.camera.read()
 
@@ -85,16 +82,16 @@ class BallDetector:
         # Compute error
         error = self.setpoint - self.position
 
-        # display the resulting frame
-        cv2.line(
-            frame, (int(self.setpoint), 0), (int(self.setpoint), 240), (255, 0, 0), 5
-        )
-        cv2.line(
-            frame, (0, self.cutoff), (int(self.IM_WIDTH), self.cutoff), (255, 0, 0), 5
-        )
-        cv2.imshow("Color mask", colorMask)
-        cv2.imshow("Frame", frame)
-        cv2.waitKey(1)
+        # # display the resulting frame
+        # cv2.line(
+        #     frame, (int(self.setpoint), 0), (int(self.setpoint), 240), (255, 0, 0), 5
+        # )
+        # cv2.line(
+        #     frame, (0, self.cutoff), (int(self.IM_WIDTH), self.cutoff), (255, 0, 0), 5
+        # )
+        # cv2.imshow("Color mask", colorMask)
+        # cv2.imshow("Frame", frame)
+        # cv2.waitKey(1)
 
         self.start_time = time.time()
         self.controlLoopTimes.insert(0, delta)
