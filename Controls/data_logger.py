@@ -30,6 +30,7 @@ class DataLogger:
         self.pwm_kp = []
         self.pwm_ki = []
         self.pwm_kd = []
+        self.pwm_kw = []
         self.curr_time = []
 
     def log_data(
@@ -42,6 +43,7 @@ class DataLogger:
         pwm_kp,
         pwm_ki,
         pwm_kd,
+        pwm_kw,
     ):
         self.delt_enc.append(delt_enc)
         self.loop_time.append(loop_time)
@@ -51,6 +53,7 @@ class DataLogger:
         self.pwm_kp.append(pwm_kp)
         self.pwm_ki.append(pwm_ki)
         self.pwm_kd.append(pwm_kd)
+        self.pwm_kw.append(pwm_kw)
 
     def write_file(self):
         data = {
@@ -62,6 +65,7 @@ class DataLogger:
             "KpContrib": self.pwm_kp,
             "KiContrib": self.pwm_ki,
             "KdContrib": self.pwm_kd,
+            "KwContrib": self.pwm_kw
         }
         df = pd.DataFrame(data)
         df.to_csv(self.filepath)
