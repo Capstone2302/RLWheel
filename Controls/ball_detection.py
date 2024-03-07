@@ -7,11 +7,13 @@ from .data_logger import DataLogger_Ball
 
 # Continuously capture frames from the camera
 class BallDetector:
-    lower_ball = np.array([10, 100, 10])  # BGR encoding
-    upper_ball = np.array([90, 240, 120])  # BGR encoding
-    kp = 10
-    ki = 0.1
-    kd = 1
+    # lower_ball = np.array([10, 100, 10])  # BGR encoding
+    # upper_ball = np.array([90, 240, 120])  # BGR encoding
+    # green ball
+    lower_ball = np.array([5, 5, 5])  # BGR encoding
+    upper_ball = np.array([90, 90, 90])  # BGR encoding
+
+
     IM_WIDTH = 480
     IM_HEIGHT = 360
     FRAMERATE = 30
@@ -30,7 +32,7 @@ class BallDetector:
         self.speed = 0
         self.logger = DataLogger_Ball()
 
-        if (self.camera == None) or (not self.camera.isOpened()): #TODO: clean up 
+        if (self.camera == None) or (not self.camera.isOpened()):  # TODO: clean up
             print("\n\n")
             print("Error - could not open video device.")
             print("\n\n")
@@ -46,9 +48,11 @@ class BallDetector:
     def gain(x):
         return x
 
-    def ball_finder(self,log):
+    def ball_finder(self, log):
         # returns error of ball position from setpoin
         _, frame = self.camera.read()
+        # height, width, _ = frame.shape
+        # frame = frame[:int(height * 3/4), :]
 
         blurred = cv2.GaussianBlur(frame, (3, 3), 0)
 
@@ -60,17 +64,17 @@ class BallDetector:
 
         if contours:
             c = max(contours, key=cv2.contourArea)
-            ((x, y), radius) = cv2.minEnclosingCircle(c)
+            ((x, y), radius) = cv2.minEnclosingCircle(c)    
             M = cv2.moments(c)
             if M["m00"] != 0 and int(M["m01"] / M["m00"]) < self.cutoff:
                 center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-            else:
+            elif radius < 15:
                 center = (int(BallDetector.setpoint), int(10))
-
+            else: 
+                center = (int(BallDetector.setpoint), int(10))
             # To see the centroid clearly
-            if radius > 2:
+            if radius > 15:
                 cv2.circle(frame, center, 5, (0, 0, 255), -1)
-
         # current position of ball
         try:
             delta = time.time() - self.start_time
