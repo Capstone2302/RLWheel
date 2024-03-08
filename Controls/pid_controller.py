@@ -41,7 +41,7 @@ class MotorController:  # add class definitions
         # get error from set point and curr_rpm
         curr_rpm = (delt_enc * 60) / (diff_time * 2400)  # CCW is positive
 
-        diff_pos = 0-curr_pos
+        diff_pos = 0 - curr_pos
 
         # using PID variables and such, calculate PWM output
         self.integrator_val = self.integrator_val + self.e_prev * diff_time
@@ -49,7 +49,7 @@ class MotorController:  # add class definitions
         pwm_kp = self.k_p * diff_pos
         pwm_ki = self.k_i * (self.integrator_val + diff_pos)
         pwm_kd = self.k_d * (diff_pos - self.e_prev)
-        pwm_kw = self.k_w*curr_rpm
+        pwm_kw = self.k_w * curr_rpm
         pwm_est = pwm_kp + pwm_ki + pwm_kd + pwm_kw
         self.e_prev = diff_pos
 

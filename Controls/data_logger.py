@@ -65,7 +65,7 @@ class DataLogger:
             "KpContrib": self.pwm_kp,
             "KiContrib": self.pwm_ki,
             "KdContrib": self.pwm_kd,
-            "KwContrib": self.pwm_kw
+            "KwContrib": self.pwm_kw,
         }
         df = pd.DataFrame(data)
         df.to_csv(self.filepath)

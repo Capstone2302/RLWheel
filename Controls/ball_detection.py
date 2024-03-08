@@ -13,7 +13,6 @@ class BallDetector:
     lower_ball = np.array([5, 5, 5])  # BGR encoding
     upper_ball = np.array([90, 90, 90])  # BGR encoding
 
-
     IM_WIDTH = 480
     IM_HEIGHT = 360
     FRAMERATE = 30
@@ -64,13 +63,13 @@ class BallDetector:
 
         if contours:
             c = max(contours, key=cv2.contourArea)
-            ((x, y), radius) = cv2.minEnclosingCircle(c)    
+            ((x, y), radius) = cv2.minEnclosingCircle(c)
             M = cv2.moments(c)
             if M["m00"] != 0 and int(M["m01"] / M["m00"]) < self.cutoff:
                 center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
             elif radius < 15:
                 center = (int(BallDetector.setpoint), int(10))
-            else: 
+            else:
                 center = (int(BallDetector.setpoint), int(10))
             # To see the centroid clearly
             if radius > 15:
