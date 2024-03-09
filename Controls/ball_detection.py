@@ -88,16 +88,16 @@ class BallDetector:
         # Compute error
         error = self.setpoint - self.position
 
-        # display the resulting frame
-        cv2.line(
-            frame, (int(self.setpoint), 0), (int(self.setpoint), 240), (255, 0, 0), 5
-        )
-        cv2.line(
-            frame, (0, self.cutoff), (int(self.IM_WIDTH), self.cutoff), (255, 0, 0), 5
-        )
-        cv2.imshow("Color mask", colorMask)
-        cv2.imshow("Frame", frame)
-        cv2.waitKey(1)
+        # # display the resulting frame
+        # cv2.line(
+        #     frame, (int(self.setpoint), 0), (int(self.setpoint), 240), (255, 0, 0), 5
+        # )
+        # cv2.line(
+        #     frame, (0, self.cutoff), (int(self.IM_WIDTH), self.cutoff), (255, 0, 0), 5
+        # )
+        # cv2.imshow("Color mask", colorMask)
+        # cv2.imshow("Frame", frame)
+        # cv2.waitKey(1)
 
         self.start_time = time.time()
         self.controlLoopTimes.insert(0, delta)

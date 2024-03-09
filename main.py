@@ -37,13 +37,12 @@ def main():
     explaining its purpose and overall program flow.
 
     """
-    ball_detector = BallDetector()
+    # ball_detector = BallDetector()
 
     try:
         while True:
-            err = ball_detector.ball_finder(log_perhaps)
-            print(err)
-            controller.control_routine(ser, err, log_perhaps)
+            # err = ball_detector.ball_finder(log_perhaps)
+            controller.control_routine(ser,0, log_perhaps)
 
     except KeyboardInterrupt:
         # Handle Ctrl+C to exit gracefully
@@ -51,7 +50,7 @@ def main():
 
     finally:
         controller.exit(ser, log_perhaps)
-        ball_detector.exit(log_perhaps)
+        # ball_detector.exit(log_perhaps)
 
 
 if __name__ == "__main__":
