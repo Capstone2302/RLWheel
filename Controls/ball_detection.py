@@ -10,11 +10,14 @@ class BallDetector:
     # lower_ball = np.array([10, 100, 10])  # BGR encoding
     # upper_ball = np.array([90, 240, 120])  # BGR encoding
     # green ball
-    lower_ball = np.array([5, 5, 5])  # BGR encoding
-    upper_ball = np.array([90, 90, 90])  # BGR encoding
+    # lower_ball = np.array([5, 5, 5])  # BGR encoding
+    # upper_ball = np.array([90, 90, 90])  # BGR encoding
+    # black ball 
+    lower_ball = np.array([40, 20, 0])  # BGR encoding
+    upper_ball = np.array([210, 155, 60])  # BGR encoding
 
-    IM_WIDTH = 480
-    IM_HEIGHT = 360
+    IM_WIDTH = 424
+    IM_HEIGHT = 240
     FRAMERATE = 30
     loglength = 1000
     setpoint = IM_WIDTH / 2
@@ -38,8 +41,15 @@ class BallDetector:
             exit(0)
 
         self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, self.IM_WIDTH)
+        print("Frame Width set:", self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, self.IM_WIDTH))
+
         self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, self.IM_HEIGHT)
+        print("Frame Height set:", self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, self.IM_HEIGHT))
+
         self.camera.set(cv2.CAP_PROP_FPS, self.FRAMERATE)
+        print("FPS set:", self.camera.set(cv2.CAP_PROP_FPS, self.FRAMERATE))
+
+        self.camera.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
     def errorFunc(x, x_dot):
         return 0.75 * BallDetector.gain(x) + 0.02 * x_dot
@@ -65,14 +75,13 @@ class BallDetector:
             c = max(contours, key=cv2.contourArea)
             ((x, y), radius) = cv2.minEnclosingCircle(c)
             M = cv2.moments(c)
-            if M["m00"] != 0 and int(M["m01"] / M["m00"]) < self.cutoff:
-                center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-            elif radius < 15:
+            if radius < 25:
                 center = (int(BallDetector.setpoint), int(10))
+            elif M["m00"] != 0 and int(M["m01"] / M["m00"]) < self.cutoff:
+                center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
             else:
                 center = (int(BallDetector.setpoint), int(10))
-            # To see the centroid clearly
-            if radius > 15:
+            if radius > 1:
                 cv2.circle(frame, center, 5, (0, 0, 255), -1)
         # current position of ball
         try:
@@ -88,16 +97,16 @@ class BallDetector:
         # Compute error
         error = self.setpoint - self.position
 
-        # # display the resulting frame
-        # cv2.line(
-        #     frame, (int(self.setpoint), 0), (int(self.setpoint), 240), (255, 0, 0), 5
-        # )
-        # cv2.line(
-        #     frame, (0, self.cutoff), (int(self.IM_WIDTH), self.cutoff), (255, 0, 0), 5
-        # )
-        # cv2.imshow("Color mask", colorMask)
-        # cv2.imshow("Frame", frame)
-        # cv2.waitKey(1)
+        #display the resulting frame
+        cv2.line(
+            frame, (int(self.setpoint), 0), (int(self.setpoint), 240), (255, 0, 0), 5
+        )
+        cv2.line(
+            frame, (0, self.cutoff), (int(self.IM_WIDTH), self.cutoff), (255, 0, 0), 5
+        )
+        cv2.imshow("Color mask", colorMask)
+        cv2.imshow("Frame", frame)
+        cv2.waitKey(1)
 
         self.start_time = time.time()
         self.controlLoopTimes.insert(0, delta)

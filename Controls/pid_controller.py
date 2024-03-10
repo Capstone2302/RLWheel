@@ -20,10 +20,10 @@ from .data_logger import DataLogger
 
 class MotorController:  # add class definitions
     def __init__(self):
-        self.k_p = 0#4.25
+        self.k_p = 4.5
         self.k_i = 0
-        self.k_d = 0  # 2.8
-        self.k_w = 8
+        self.k_d = 2.25
+        self.k_w = 0 #-2.9
         self.integrator_val = 0
         self.start_time = time.time()
         self.e_prev = 0
@@ -32,17 +32,15 @@ class MotorController:  # add class definitions
     def control_routine(self, ser, curr_pos, log):
         # get encoder value from UART
         delt_enc = receive_msg(ser)
-
         # get 'real' time
         curr_time = time.time()
         diff_time = curr_time - self.start_time
         self.start_time = curr_time
-
         # get error from set point and curr_rpm
         curr_rpm = (delt_enc * 60) / (diff_time * 2400)  # CCW is positive
+        #print(curr_rpm, curr_pos)
 
-        diff_pos = 0 - curr_pos
-
+        diff_pos = 0 - curr_pos # set_rpm - curr_rpm
         # using PID variables and such, calculate PWM output
         self.integrator_val = self.integrator_val + self.e_prev * diff_time
 
@@ -89,6 +87,6 @@ class MotorController:  # add class definitions
     def exit(self, ser, log):
         msg = str(0).ljust(7, "\t")
         send_msg(ser, msg)
-        ser.close()
+        # ser.close()
         if log:
             self.logger.write_file()
