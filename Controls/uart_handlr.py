@@ -11,6 +11,7 @@ Created - 26/11/2023
 """
 import serial
 
+
 def send_msg(ser, command):
     ser = serial.Serial("/dev/ttyUSB0", baudrate=115200, stopbits=1, timeout=100)
     ser.write(command.encode())

@@ -21,6 +21,7 @@ Created - 06/10/2023
 import serial
 from Controls.pid_controller import MotorController
 from Controls.ball_detection import BallDetector
+import time
 
 # Define the serial port and its settings
 # ser = serial.Serial("/dev/ttyUSB0", baudrate=115200, stopbits=1, timeout=100)
@@ -39,11 +40,14 @@ def main():
 
     """
     ball_detector = BallDetector()
+    prev_ball_image_time = time.time()
 
     try:
         while True:
             err = ball_detector.ball_finder(log_perhaps)
-            controller.control_routine(ser,err, log_perhaps)
+            print("Loop processing time: " + str(time.time() - prev_ball_image_time))
+            prev_ball_image_time = time.time()
+            # controller.control_routine(ser,err, log_perhaps)
 
     except KeyboardInterrupt:
         # Handle Ctrl+C to exit gracefully

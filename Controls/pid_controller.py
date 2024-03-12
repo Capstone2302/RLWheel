@@ -22,8 +22,8 @@ class MotorController:  # add class definitions
     def __init__(self):
         self.k_p = 4.5
         self.k_i = 0
-        self.k_d = 2.25
-        self.k_w = 0 #-2.9
+        self.k_d = 1.5
+        self.k_w = 0  # -2.9
         self.integrator_val = 0
         self.start_time = time.time()
         self.e_prev = 0
@@ -38,9 +38,9 @@ class MotorController:  # add class definitions
         self.start_time = curr_time
         # get error from set point and curr_rpm
         curr_rpm = (delt_enc * 60) / (diff_time * 2400)  # CCW is positive
-        #print(curr_rpm, curr_pos)
+        # print(curr_rpm, curr_pos)
 
-        diff_pos = 0 - curr_pos # set_rpm - curr_rpm
+        diff_pos = 0 - curr_pos  # set_rpm - curr_rpm
         # using PID variables and such, calculate PWM output
         self.integrator_val = self.integrator_val + self.e_prev * diff_time
 

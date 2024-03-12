@@ -10,14 +10,18 @@ class BallDetector:
     # lower_ball = np.array([10, 100, 10])  # BGR encoding
     # upper_ball = np.array([90, 240, 120])  # BGR encoding
     # green ball
+
     # lower_ball = np.array([5, 5, 5])  # BGR encoding
     # upper_ball = np.array([90, 90, 90])  # BGR encoding
-    # black ball 
+    # black ball
+
     lower_ball = np.array([40, 20, 0])  # BGR encoding
     upper_ball = np.array([210, 155, 60])  # BGR encoding
 
-    IM_WIDTH = 424
-    IM_HEIGHT = 240
+    IM_WIDTH = 160
+    IM_HEIGHT = 120
+    IM_CROP_WIDTH = 40
+    IM_CROP_HEIGHT = 20
     FRAMERATE = 30
     loglength = 1000
     setpoint = IM_WIDTH / 2
@@ -41,13 +45,26 @@ class BallDetector:
             exit(0)
 
         self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, self.IM_WIDTH)
-        print("Frame Width set:", self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, self.IM_WIDTH))
+        print(
+            "Frame Width set:", self.camera.set(cv2.CAP_PROP_FRAME_WIDTH, self.IM_WIDTH)
+        )
 
         self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, self.IM_HEIGHT)
-        print("Frame Height set:", self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, self.IM_HEIGHT))
+        print(
+            "Frame Height set:",
+            self.camera.set(cv2.CAP_PROP_FRAME_HEIGHT, self.IM_HEIGHT),
+        )
 
         self.camera.set(cv2.CAP_PROP_FPS, self.FRAMERATE)
         print("FPS set:", self.camera.set(cv2.CAP_PROP_FPS, self.FRAMERATE))
+
+        self.camera.set(
+            cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG")
+        )  # Set codec to MJPEG
+        print(
+            "Codec set:",
+            self.camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG")),
+        )
 
         self.camera.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
@@ -58,11 +75,16 @@ class BallDetector:
         return x
 
     def ball_finder(self, log):
+        start_time = time.time()
         # returns error of ball position from setpoin
         _, frame = self.camera.read()
+        # frame = frame[int(self.setpoint-self.IM_CROP_WIDTH/2):int(self.setpoint+self.IM_CROP_WIDTH/2),int(self.IM_HEIGHT/4):int(self.IM_HEIGHT/2),:]
         # height, width, _ = frame.shape
         # frame = frame[:int(height * 3/4), :]
-
+        print(
+            "        Image processing time (frame acquisition): "
+            + str(time.time() - start_time)
+        )
         blurred = cv2.GaussianBlur(frame, (3, 3), 0)
 
         colorMask = cv2.inRange(frame, BallDetector.lower_ball, BallDetector.upper_ball)
@@ -70,7 +92,6 @@ class BallDetector:
         contours, _ = cv2.findContours(
             colorMask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
         )
-
         if contours:
             c = max(contours, key=cv2.contourArea)
             ((x, y), radius) = cv2.minEnclosingCircle(c)
@@ -93,11 +114,10 @@ class BallDetector:
             self.position = self.setpoint
             speed = 0
             delta = 0
-
         # Compute error
         error = self.setpoint - self.position
 
-        #display the resulting frame
+        # display the resulting frame
         cv2.line(
             frame, (int(self.setpoint), 0), (int(self.setpoint), 240), (255, 0, 0), 5
         )
@@ -105,7 +125,7 @@ class BallDetector:
             frame, (0, self.cutoff), (int(self.IM_WIDTH), self.cutoff), (255, 0, 0), 5
         )
         cv2.imshow("Color mask", colorMask)
-        cv2.imshow("Frame", frame)
+        # cv2.imshow("Frame", frame)
         cv2.waitKey(1)
 
         self.start_time = time.time()
@@ -118,7 +138,6 @@ class BallDetector:
         self.errorsLog.pop()
         if log:
             self.logger.log_data(error, np.mean(self.controlLoopTimes), self.start_time)
-
         return error
 
     def exit(self, log):
