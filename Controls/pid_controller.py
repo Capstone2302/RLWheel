@@ -29,9 +29,9 @@ class MotorController:  # add class definitions
         self.e_prev = 0
         self.logger = DataLogger()
 
-    def control_routine(self, ser, curr_pos, log):
+    def control_routine(self, curr_pos, log):
         # get encoder value from UART
-        delt_enc = receive_msg(ser)
+        delt_enc = receive_msg()
         # get 'real' time
         curr_time = time.time()
         diff_time = curr_time - self.start_time
@@ -53,7 +53,7 @@ class MotorController:  # add class definitions
 
         # send messages over UART
         msg = str(int(pwm_est)).ljust(7, "\t")
-        send_msg(ser, msg)
+        send_msg(msg)
 
         if log:
             self.logger.log_data(
@@ -68,25 +68,24 @@ class MotorController:  # add class definitions
                 pwm_kw,
             )
 
-    def PID_response_test1(self, ser, max, log_perhaps):
+    def PID_response_test1(self, max, log_perhaps):
         # continuous tests
         for i in range(max, -max, 1):
-            self.control_routine(ser, i / 10, log_perhaps)
+            self.control_routine(i / 10, log_perhaps)
 
         for i in range(-max, max, 1):
-            self.control_routine(ser, i / 10, log_perhaps)
+            self.control_routine(i / 10, log_perhaps)
 
-    def PID_response_test2(self, ser, max, square_len, log_perhaps):
+    def PID_response_test2(self, max, square_len, log_perhaps):
         # step response tests
         for i in range(max * 6):
             if i % square_len < square_len / 2:
-                self.control_routine(ser, max, log_perhaps)
+                self.control_routine(max, log_perhaps)
             else:
-                self.control_routine(ser, -max, log_perhaps)
+                self.control_routine(-max, log_perhaps)
 
-    def exit(self, ser, log):
+    def exit(self, log):
         msg = str(0).ljust(7, "\t")
-        send_msg(ser, msg)
-        # ser.close()
+        send_msg(msg)
         if log:
             self.logger.write_file()
