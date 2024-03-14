@@ -20,10 +20,10 @@ from .data_logger import DataLogger
 
 class MotorController:  # add class definitions
     def __init__(self):
-        self.k_p = 2.25  # 4.5
-        self.k_i = 1.5
-        self.k_d = 0.5  # 2.8
-        self.k_w = 0  # -2.9
+        self.k_p = 0#2.25  # 4.5
+        self.k_i = 0#1.5
+        self.k_d = 0#0.5  # 2.8
+        self.k_w = -0.3581942  # -2.9
         self.integrator_val = 0
         self.start_time = time.time()
         self.e_prev = 0
@@ -63,7 +63,7 @@ class MotorController:  # add class definitions
         # send messages over UART
         msg = str(int(pwm_est)).ljust(7, "\t")
         send_msg(msg)
-
+        print(pwm_est)
         if log:
             self.logger.log_data(
                 delt_enc,
@@ -76,6 +76,31 @@ class MotorController:  # add class definitions
                 pwm_kd,
                 pwm_kw,
             )
+    def PWM_Response_test(self, pwm_val, log):
+        # get encoder value from UART
+        delt_enc = receive_msg()
+        curr_time = time.time()
+        diff_time = curr_time - self.start_time
+        self.start_time = curr_time
+
+        curr_rpm = (delt_enc * 60) / (diff_time * 2400)  # CCW is positive
+        # send messages over UART
+        msg = str(int(pwm_val)).ljust(7, "\t")
+        send_msg(msg)
+        print(curr_rpm)
+        if log:
+            self.logger.log_data(
+                delt_enc,
+                diff_time,
+                curr_rpm,
+                0,
+                curr_time,
+                pwm_val,
+                0,
+                0,
+                0,
+            )
+
 
     def PID_response_test1(self, max, log_perhaps):
         # continuous tests

@@ -26,7 +26,6 @@ import time
 controller = MotorController()
 log_perhaps = True
 
-
 def main():
     """
     The main entry point of the application.
@@ -40,13 +39,13 @@ def main():
 
     try:
         while True:
-            err, reset_integrator = ball_detector.ball_finder(
-                log_perhaps, display=False
-            )
-            print(err, reset_integrator)
-            print("Loop processing time: " + str(time.time() - prev_ball_image_time))
-            prev_ball_image_time = time.time()
-            controller.control_routine(err, log_perhaps, reset_integrator)
+            # err, reset_integrator = ball_detector.ball_finder(
+            #     log_perhaps, display=True
+            # )
+            # # print("Loop processing time: " + str(time.time() - prev_ball_image_time))
+            # # prev_ball_image_time = time.time()
+            controller.control_routine(0,False,False)
+            # controller.PWM_Response_test(-700, True)
 
     except KeyboardInterrupt:
         # Handle Ctrl+C to exit gracefully
