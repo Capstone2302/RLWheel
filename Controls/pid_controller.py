@@ -20,29 +20,30 @@ from .data_logger import DataLogger
 
 class MotorController:  # add class definitions
     def __init__(self):
-        self.k_p = 4.5
-        self.k_i = 0
-        self.k_d = 1.5
+        self.k_p = 2.25  # 4.5
+        self.k_i = 1.5
+        self.k_d = 0.5  # 2.8
         self.k_w = 0  # -2.9
         self.integrator_val = 0
         self.start_time = time.time()
         self.e_prev = 0
         self.logger = DataLogger()
 
-    def control_routine(self, curr_pos, log):
+    def control_routine(self, curr_pos, log, reset_integrator):
         # get encoder value from UART
         delt_enc = receive_msg()
-        # get 'real' time
         curr_time = time.time()
         diff_time = curr_time - self.start_time
         self.start_time = curr_time
-        # get error from set point and curr_rpm
+
         curr_rpm = (delt_enc * 60) / (diff_time * 2400)  # CCW is positive
-        # print(curr_rpm, curr_pos)
 
         diff_pos = 0 - curr_pos  # set_rpm - curr_rpm
+
         # using PID variables and such, calculate PWM output
         self.integrator_val = self.integrator_val + self.e_prev * diff_time
+        if reset_integrator:
+            self.integrator_val = 0
 
         pwm_kp = self.k_p * diff_pos
         pwm_ki = self.k_i * (self.integrator_val + diff_pos)
@@ -50,6 +51,14 @@ class MotorController:  # add class definitions
         pwm_kw = self.k_w * curr_rpm
         pwm_est = pwm_kp + pwm_ki + pwm_kd + pwm_kw
         self.e_prev = diff_pos
+
+        # pwm_kp = self.k_p * diff_pos/diff_time
+        # pwm_ki = self.k_i * (self.integrator_val + diff_pos/diff_time)
+        # pwm_kd = self.k_d * (diff_pos/diff_time - self.e_prev)
+        # pwm_kw = self.k_w * curr_rpm
+        # pwm_est = (pwm_kp + pwm_ki + pwm_kd + pwm_kw)
+        # print(pwm_est)
+        # self.e_prev = diff_pos/diff_time
 
         # send messages over UART
         msg = str(int(pwm_est)).ljust(7, "\t")

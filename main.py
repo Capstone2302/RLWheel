@@ -40,10 +40,13 @@ def main():
 
     try:
         while True:
-            err = ball_detector.ball_finder(log_perhaps)
+            err, reset_integrator = ball_detector.ball_finder(
+                log_perhaps, display=False
+            )
+            print(err, reset_integrator)
             print("Loop processing time: " + str(time.time() - prev_ball_image_time))
             prev_ball_image_time = time.time()
-            # controller.control_routine(err, log_perhaps)
+            controller.control_routine(err, log_perhaps, reset_integrator)
 
     except KeyboardInterrupt:
         # Handle Ctrl+C to exit gracefully
