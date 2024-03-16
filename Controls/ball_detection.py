@@ -15,7 +15,7 @@ class BallDetector:
     # upper_ball = np.array([90, 90, 90])  # BGR encoding
     # black ball
 
-    lower_ball = np.array([100, 80, 0])  # BGR encoding
+    lower_ball = np.array([80, 70, 0])  # BGR encoding
     upper_ball = np.array([250, 160, 70])  # BGR encoding
 
     IM_WIDTH = 424

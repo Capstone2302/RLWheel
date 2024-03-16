@@ -38,13 +38,14 @@ def main():
     prev_ball_image_time = time.time()
 
     try:
+        wait_for_space()
         while True:
-            # err, reset_integrator = ball_detector.ball_finder(
-            #     log_perhaps, display=True
-            # )
+            err, reset_integrator = ball_detector.ball_finder(
+                log_perhaps, display=True
+            )
             # # print("Loop processing time: " + str(time.time() - prev_ball_image_time))
             # # prev_ball_image_time = time.time()
-            controller.control_routine(0,False,False)
+            controller.control_routine(err,log_perhaps)
             # controller.PWM_Response_test(-700, True)
 
     except KeyboardInterrupt:
@@ -54,6 +55,14 @@ def main():
     finally:
         controller.exit(log_perhaps)
         ball_detector.exit(log_perhaps)
+
+def wait_for_space():
+    print("Press the enter key to enable controller")
+    key = input()
+    while key.lower() != '':
+        print("You didn't press space. Please try again.")
+        key = input()
+    print("enter key pressed, enabling controller")
 
 
 if __name__ == "__main__":
