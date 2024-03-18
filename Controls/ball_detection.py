@@ -96,6 +96,9 @@ class BallDetector:
                 reset_integrator = False
             if radius > 1:
                 cv2.circle(frame, center, 5, (0, 0, 255), -1)
+                x, y, w, h = cv2.boundingRect(c)
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
         # current position of ball
         try:
             delta = time.time() - self.start_time

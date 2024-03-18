@@ -20,10 +20,10 @@ from .data_logger import DataLogger
 
 class MotorController:  # add class definitions
     def __init__(self):
-        self.k_p = 3 #2.25  # 4.5
-        self.k_i = 0#1.5
-        self.k_d = 0.8#0.5  # 2.8
-        self.k_w = -9.2  # -2.9
+        self.k_p = 2.5 #2.25  # 4.5
+        self.k_i = 15#1.5
+        self.k_d = 0.225#0.5  # 2.8
+        self.k_w = 0  # -2.9
         self.integrator_val = 0
         self.start_time = time.time()
         self.e_prev = 0
@@ -46,9 +46,10 @@ class MotorController:  # add class definitions
         pwm_kp = self.k_p * diff_pos
         pwm_ki = self.k_i * (self.integrator_val)
         pwm_kd = self.k_d * (diff_pos - self.e_prev)/diff_time
-        if pwm_kd > 200 or pwm_kd < -200:
-            pwm_kd = 0
+        # if pwm_kd > 200 or pwm_kd < -200:
+        #     pwm_kd = 0
         pwm_kw = self.k_w * curr_rpm
+        print(curr_rpm)
         if self.e_prev == 0 and diff_pos == 0 :
             pwm_kw = 0
             pwm_ki = 0
