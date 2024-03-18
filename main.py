@@ -19,12 +19,14 @@ Created - 06/10/2023
 
 # Imports
 import serial
+# TODO: import tenserflow or torch of some kind
 from Controls.pid_controller import MotorController
 from Controls.ball_detection import BallDetector
 import time
 
-controller = MotorController()
+
 log_perhaps = True
+
 
 def main():
     """
@@ -35,18 +37,15 @@ def main():
 
     """
     ball_detector = BallDetector()
-    prev_ball_image_time = time.time()
 
     try:
         wait_for_space()
+        net = torch.load("file path where model lives")
+        controller = MotorController(net)
         while True:
-            err, reset_integrator = ball_detector.ball_finder(
-                log_perhaps, display=True
-            )
-            # # print("Loop processing time: " + str(time.time() - prev_ball_image_time))
-            # # prev_ball_image_time = time.time()
-            controller.control_routine(err,log_perhaps)
-            # controller.PWM_Response_test(-700, True)
+            err, reset_integrator = ball_detector.ball_finder(log_perhaps, display=True)
+            # model takes in inputs, err, derivative or error (both of ball position from set point), dt
+            controller.control_routine(err, log_perhaps) # TODO: re implement the reset integrator term
 
     except KeyboardInterrupt:
         # Handle Ctrl+C to exit gracefully
@@ -56,10 +55,11 @@ def main():
         controller.exit(log_perhaps)
         ball_detector.exit(log_perhaps)
 
+
 def wait_for_space():
     print("Press the enter key to enable controller")
     key = input()
-    while key.lower() != '':
+    while key.lower() != "":
         print("You didn't press space. Please try again.")
         key = input()
     print("enter key pressed, enabling controller")
