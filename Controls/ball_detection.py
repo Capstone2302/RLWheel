@@ -29,7 +29,7 @@ class BallDetector:
         self.controlLoopTimes = [0] * 100
         self.positionLog = [0] * self.loglength
         self.errorsLog = [0] * self.loglength
-        self.camera = cv2.VideoCapture(2, cv2.CAP_V4L2)
+        self.camera = cv2.VideoCapture(0, cv2.CAP_V4L2)
         self.start_time = time.time()
         self.prevPosition = self.setpoint
         self.position = self.setpoint
