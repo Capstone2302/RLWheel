@@ -19,6 +19,7 @@ Created - 06/10/2023
 
 # Imports
 import serial
+
 # TODO: import tenserflow or torch of some kind
 from Controls.pid_controller import MotorController
 from Controls.ball_detection import BallDetector
@@ -45,7 +46,9 @@ def main():
         while True:
             err, reset_integrator = ball_detector.ball_finder(log_perhaps, display=True)
             # model takes in inputs, err, derivative or error (both of ball position from set point), dt
-            controller.control_routine(err, log_perhaps) # TODO: re implement the reset integrator term
+            controller.control_routine(
+                err, log_perhaps
+            )  # TODO: re implement the reset integrator term
 
     except KeyboardInterrupt:
         # Handle Ctrl+C to exit gracefully
