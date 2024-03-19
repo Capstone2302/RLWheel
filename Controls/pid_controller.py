@@ -50,9 +50,9 @@ class MotorController:  # add class definitions
         #     pwm_kd = 0
         pwm_kw = self.k_w * curr_rpm
         print(curr_rpm)
-        if self.e_prev == 0 and diff_pos == 0 :
-            pwm_kw = 0
-            pwm_ki = 0
+        # if self.e_prev == 0 and diff_pos == 0 :
+        #     pwm_kw = 0
+        #     pwm_ki = 0
         pwm_est = pwm_kp + pwm_ki + pwm_kd + pwm_kw
         self.e_prev = diff_pos
 
