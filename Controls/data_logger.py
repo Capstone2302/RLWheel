@@ -27,6 +27,7 @@ class DataLogger:
         self.set_point = []
         self.loop_time = []
         self.curr_rpm = []
+        self.pwm_est = []
         self.pwm_kp = []
         self.pwm_ki = []
         self.pwm_kd = []
@@ -40,6 +41,7 @@ class DataLogger:
         curr_rpm,
         set_point,
         curr_time,
+        pwm_est,
         pwm_kp,
         pwm_ki,
         pwm_kd,
@@ -50,6 +52,7 @@ class DataLogger:
         self.curr_rpm.append(curr_rpm)
         self.set_point.append(set_point)
         self.curr_time.append(curr_time)
+        self.pwm_est.append(pwm_est)
         self.pwm_kp.append(pwm_kp)
         self.pwm_ki.append(pwm_ki)
         self.pwm_kd.append(pwm_kd)
@@ -62,6 +65,7 @@ class DataLogger:
             "CurrRpm": self.curr_rpm,
             "SetPoint": self.set_point,
             "CurrTime": self.curr_time,
+            "PwmEst": self.pwm_est,
             "KpContrib": self.pwm_kp,
             "KiContrib": self.pwm_ki,
             "KdContrib": self.pwm_kd,

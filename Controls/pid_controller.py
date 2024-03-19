@@ -28,9 +28,9 @@ class MotorController:  # add class definitions
         self.start_time = time.time()
         self.e_prev = 0
         self.logger = DataLogger()
-        self.net = net #TODO: this is tensor flow 
+        self.net = net  # TODO: this is tensor flow
 
-    def control_routine(self, curr_pos, log): 
+    def control_routine(self, curr_pos, log):
         # get encoder value from UART
         delt_enc = receive_msg()
         curr_time = time.time()
@@ -68,6 +68,7 @@ class MotorController:  # add class definitions
                 curr_rpm,
                 diff_pos,
                 curr_time,
+                pwm_est,
                 pwm_kp,
                 pwm_ki,
                 pwm_kd,
@@ -75,7 +76,7 @@ class MotorController:  # add class definitions
             )
 
     def training_routine(self, curr_pos, log):
-      # get encoder value from UART
+        # get encoder value from UART
         delt_enc = receive_msg()
         curr_time = time.time()
         diff_time = curr_time - self.start_time
@@ -85,7 +86,7 @@ class MotorController:  # add class definitions
 
         diff_pos = 0 - curr_pos  # set_rpm - curr_rpm
 
-        pwm_est = self.net(diff_pos, diff_pos/diff_time, diff_time, curr_rpm)
+        pwm_est = self.net(diff_pos, diff_pos / diff_time, diff_time, curr_rpm)
 
         # send messages over UART
         msg = str(int(pwm_est)).ljust(7, "\t")
@@ -98,12 +99,13 @@ class MotorController:  # add class definitions
                 curr_rpm,
                 diff_pos,
                 curr_time,
-                pwm_kp,
-                pwm_ki,
-                pwm_kd,
-                pwm_kw,
-            ) #TODO: fix logging class 
-            
+                pwm_est,
+                -1,
+                -1,
+                -1,
+                -1,
+            )
+
     def PWM_Response_test(self, pwm_val, log):
         # get encoder value from UART
         delt_enc = receive_msg()
