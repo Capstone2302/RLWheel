@@ -29,7 +29,7 @@ class BallDetector:
         self.controlLoopTimes = [0] * 100
         self.positionLog = [0] * self.loglength
         self.errorsLog = [0] * self.loglength
-        self.camera = cv2.VideoCapture(2, cv2.CAP_V4L2)
+        self.camera = cv2.VideoCapture(0, cv2.CAP_V4L2)
         self.start_time = time.time()
         self.prevPosition = self.setpoint
         self.position = self.setpoint
@@ -80,20 +80,17 @@ class BallDetector:
         contours, _ = cv2.findContours(
             colorMask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
         )
-        reset_integrator = True
+        found = False
         if contours:
             c = max(contours, key=cv2.contourArea)
             ((x, y), radius) = cv2.minEnclosingCircle(c)
             M = cv2.moments(c)
             if radius < 25:
-                reset_integrator = True
                 center = (int(BallDetector.setpoint), int(10))
             elif M["m00"] != 0 and int(M["m01"] / M["m00"]) < self.cutoff:
                 center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-                reset_integrator = False
             else:
                 center = (int(BallDetector.setpoint), int(10))
-                reset_integrator = False
             if radius > 1:
                 cv2.circle(frame, center, 5, (0, 0, 255), -1)
                 x, y, w, h = cv2.boundingRect(c)
@@ -105,8 +102,9 @@ class BallDetector:
             self.prevPosition = self.position
             self.position = center[0]
             speed = (self.prevPosition - self.position) / delta
+            self.found = True
         except:
-            self.position = self.setpoint
+            self.position = 0
             speed = 0
             delta = 0
 
@@ -136,7 +134,7 @@ class BallDetector:
         if log:
             self.logger.log_data(error, delta, self.start_time)
 
-        return error, reset_integrator
+        return error, found
 
     def exit(self, log):
         if log:

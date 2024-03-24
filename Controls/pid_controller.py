@@ -16,19 +16,14 @@ Created - 03/12/2023
 import time
 from .uart_handlr import receive_msg, send_msg
 from .data_logger import DataLogger
-
+import torch
 
 class MotorController:  # add class definitions
     def __init__(self, net):
-        self.k_p = 2.5  # 2.25  # 4.5
-        self.k_i = 13  # 1.5
-        self.k_d = 0.225  # 0.5  # 2.8
-        self.k_w = 0  # -2.9
-        self.integrator_val = 0
         self.start_time = time.time()
         self.e_prev = 0
         self.logger = DataLogger()
-        self.net = net  # TODO: this is tensor flow
+        self.net = net
 
     def control_routine(self, curr_pos, log):
         # get encoder value from UART
@@ -42,21 +37,9 @@ class MotorController:  # add class definitions
         diff_pos = 0 - curr_pos  # set_rpm - curr_rpm
 
         # using PID variables and such, calculate PWM output
-        self.integrator_val += self.e_prev * diff_time
-
-        pwm_kp = self.k_p * diff_pos
-        pwm_ki = self.k_i * (self.integrator_val)
-        pwm_kd = self.k_d * (diff_pos - self.e_prev) / diff_time
-        # if pwm_kd > 200 or pwm_kd < -200:
-        #     pwm_kd = 0
-        pwm_kw = self.k_w * curr_rpm
-        print(curr_rpm)
-        if self.e_prev == 0 and diff_pos == 0:
-            pwm_kw = 0
-            pwm_ki = 0
-        pwm_est = pwm_kp + pwm_ki + pwm_kd + pwm_kw
+        obs = [diff_pos,self.e_prev,diff_time]
+        pwm_est = self.net(torch.FloatTensor([obs])).item()
         self.e_prev = diff_pos
-
         # send messages over UART
         msg = str(int(pwm_est)).ljust(7, "\t")
         print(pwm_est)
@@ -103,9 +86,8 @@ class MotorController:  # add class definitions
                 -1,
                 -1,
                 -1,
-                -1,
-            )
-
+            ) #TODO: fix logging class 
+            
     def PWM_Response_test(self, pwm_val, log):
         # get encoder value from UART
         delt_enc = receive_msg()

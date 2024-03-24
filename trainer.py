@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import gym
 from gym import wrappers
-import gym_gazebo
 import time
 #import numpy
 import random
@@ -21,6 +20,8 @@ from tensorboardX import SummaryWriter
 import torch
 import torch.nn as nn
 import torch.optim as optim
+
+import WheelEnvironment
 
 
 HIDDEN_SIZE = 128 # number of neurons in hidden layer
@@ -201,8 +202,10 @@ def filter_batch(batch, percentile):
 
 
 if __name__ == '__main__':
+    # Create the NN object
+    net = Net(obs_size, HIDDEN_SIZE, n_actions)
     # Setup environment
-    env = gym.make('GazeboWheel-v1')
+    env = WheelEnvironment(net)
     obs_size = env.observation_space.shape[0]
     n_actions = env.action_space.n
 
@@ -210,8 +213,6 @@ if __name__ == '__main__':
     ## env = gym.wrappers.Monitor(env, directory=outdir, force=True)
     ## plotter = liveplot.LivePlot(outdir)
 
-    # Create the NN object
-    net = Net(obs_size, HIDDEN_SIZE, n_actions)
     # PyTorch module that combines softmax and cross-entropy loss in one 
     # expresion
     objective = nn.CrossEntropyLoss()
