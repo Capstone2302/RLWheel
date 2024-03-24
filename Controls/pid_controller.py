@@ -49,7 +49,6 @@ class MotorController:  # add class definitions
         # if pwm_kd > 200 or pwm_kd < -200:
         #     pwm_kd = 0
         pwm_kw = self.k_w * curr_rpm
-        print(curr_rpm)
         # if self.e_prev == 0 and diff_pos == 0 :
         #     pwm_kw = 0
         #     pwm_ki = 0
@@ -66,7 +65,6 @@ class MotorController:  # add class definitions
 
         # send messages over UART
         msg = str(int(pwm_est)).ljust(7, "\t")
-        print(pwm_est)
         send_msg(msg)
         if log:
             self.logger.log_data(
