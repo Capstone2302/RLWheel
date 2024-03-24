@@ -40,9 +40,8 @@ class MotorController:  # add class definitions
         curr_rpm = (delt_enc * 60) / (diff_time * 2400)  # CCW is positive
 
         diff_pos = 0 - curr_pos  # set_rpm - curr_rpm
-
+        
         # using PID variables and such, calculate PWM output
-        obs = [diff_pos,self.e_prev,diff_time]
         pwm_est = self.net(torch.FloatTensor([obs])).item()
         self.e_prev = diff_pos
         # send messages over UART

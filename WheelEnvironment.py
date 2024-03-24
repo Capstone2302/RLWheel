@@ -78,7 +78,6 @@ class WheelEnvironment():
         delt_enc = receive_msg()
         diff_time = self.time - self.prev_time
         self.wheel_vel = (delt_enc * 60) / (diff_time * 2400)
-
         # print(msg.velocity)
         # self.wheel_vel = msg.velocity
         
@@ -101,11 +100,10 @@ class WheelEnvironment():
         # get state
         prev_found = self.ball_found
         self.get_ball_pos_camera_callback()
-        self.get_wheel_vel_callback
+        self.get_wheel_vel_callback()
         x_pos = self.ball_pos_x
         self.get_time()
         dt = self.time - self.prev_time
-        print(dt)
 
         # Define state  
         state = [x_pos, self.x_prev, self.wheel_vel, dt]
@@ -129,6 +127,8 @@ class WheelEnvironment():
         print("enter key pressed, enabling controller")
         self.get_ball_pos_camera_callback()
         prev_pos = self.ball_pos_x
+        print(prev_pos)
+        self.get_time()
         self.get_ball_pos_camera_callback()
         self.get_wheel_vel_callback()
         self.get_time()

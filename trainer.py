@@ -61,10 +61,13 @@ EpisodeStep = namedtuple('EpisodeStep', field_names=['observation', 'action', 'm
 class ImitationController:
     def __init__(self):
         self.integral = 0
+
+    def resetIntegral(self):
+        self.integral = 0
     
     def action(self, obs):
-        error = obs[0]
-        prev_err = obs[1]
+        error = -obs[0]
+        prev_err = -obs[1]
         wheel_speed = obs[2]
         dt = obs[3]
         print(obs)
@@ -74,8 +77,10 @@ class ImitationController:
         k_i = 13#1.5
         k_d = 0.225#0.5  # 2.8
         k_w = 0
-        return k_p * error + k_d * derivative + k_i * self.integral + k_w * wheel_speed
-
+        pwm = k_p * error + k_d * derivative + k_i * self.integral + k_w * wheel_speed
+        print(pwm)
+        print([k_p * error, k_d * derivative, k_i * self.integral, k_w * wheel_speed])
+        return pwm
 def iterate_batches(env, net, batch_size):
     '''
     @brief a generator function that generates batches of episodes that are
@@ -114,7 +119,7 @@ def iterate_batches(env, net, batch_size):
         act_probs_v = sm(net(obs_v))
 
         # Unpack the output of the NN to extract the probabilities associated
-        # with each action.
+        # with each action.print("Integral before reset: " + str(mentor.integral))
         # 1) Extract the data field from the NN output
         # 2) Convert the tensors from the data field into numpy array
         # 3) Extract the first element of the network output. This is where 
@@ -150,7 +155,9 @@ def iterate_batches(env, net, batch_size):
             episode_reward = 0.0
             episode_steps = []
             next_obs = env.reset()
-            mentor.integral = 0
+            print("Integral before reset: " + str(mentor.integral))
+            mentor.resetIntegral()
+            print("Integral after reset: " + str(mentor.integral))
 
             # If we accumulated enough episodes in the batch of episodes we 
             # pass the batch of episodes to the caller of this function. This
