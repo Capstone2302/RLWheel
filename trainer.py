@@ -6,7 +6,6 @@ import time
 import random
 import time
 
-import liveplot
 
 import os.path
 from os import path
@@ -21,7 +20,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-import WheelEnvironment
+from WheelEnvironment import WheelEnvironment
 
 
 HIDDEN_SIZE = 128 # number of neurons in hidden layer
@@ -57,8 +56,25 @@ class Net(nn.Module):
 # Stores the total reward for the episode and the steps taken in the episode
 Episode = namedtuple('Episode', field_names=['reward', 'steps'])
 # Stores the observation and the action the agent took
-EpisodeStep = namedtuple('EpisodeStep', field_names=['observation', 'action'])
+EpisodeStep = namedtuple('EpisodeStep', field_names=['observation', 'action', 'mentorAction'])
 
+class ImitationController:
+    def __init__(self):
+        self.integral = 0
+    
+    def action(self, obs):
+        error = obs[0]
+        prev_err = obs[1]
+        wheel_speed = obs[2]
+        dt = obs[3]
+        print(obs)
+        self.integral += prev_err * dt
+        derivative = (error-prev_err)/dt
+        k_p = 2.5 #2.25  # 4.5
+        k_i = 13#1.5
+        k_d = 0.225#0.5  # 2.8
+        k_w = 0
+        return k_p * error + k_d * derivative + k_i * self.integral + k_w * wheel_speed
 
 def iterate_batches(env, net, batch_size):
     '''
@@ -85,6 +101,8 @@ def iterate_batches(env, net, batch_size):
     #   * theta_dot
     obs = env.reset()
 
+    mentor = ImitationController()
+
     # Every iteration we send the current observation to the NN and obtain
     # a list of probabilities for each action
     while True:
@@ -109,8 +127,7 @@ def iterate_batches(env, net, batch_size):
         action = np.random.choice(len(act_probs), p=act_probs)
 
         # Run one simulation step using the action we sampled.
-        
-        next_obs, reward, is_done, _ = env.step(action)
+        next_obs, reward, is_done, _ = env.step(mentor.action(obs))
 
         # Process the simulation step:
         #   - add the current step reward to the total episode reward
@@ -119,7 +136,7 @@ def iterate_batches(env, net, batch_size):
 
         # Add the **INITIAL** observation and action we took to our list of  
         # steps for the current episode
-        episode_steps.append(EpisodeStep(observation=obs, action=action))
+        episode_steps.append(EpisodeStep(observation=obs, action=action,mentorAction=[mentor.action(obs)]))
 
         # When we are done with this episode we will save the list of steps in 
         # the episode along with the total reward to the batch of episodes 
@@ -133,6 +150,7 @@ def iterate_batches(env, net, batch_size):
             episode_reward = 0.0
             episode_steps = []
             next_obs = env.reset()
+            mentor.integral = 0
 
             # If we accumulated enough episodes in the batch of episodes we 
             # pass the batch of episodes to the caller of this function. This
@@ -192,7 +210,7 @@ def filter_batch(batch, percentile):
         # to the lambda function which returns either the observation or the 
         # action of the step)
         train_obs.extend(map(lambda step: step.observation, example.steps))
-        train_act.extend(map(lambda step: step.action, example.steps))
+        train_act.extend(map(lambda step: step.mentorAction, example.steps))
 
     # Convert the observations and actions into tensors and return them to be  
     # used to train the NN
@@ -202,13 +220,14 @@ def filter_batch(batch, percentile):
 
 
 if __name__ == '__main__':
-    # Create the NN object
-    net = Net(obs_size, HIDDEN_SIZE, n_actions)
     # Setup environment
-    env = WheelEnvironment(net)
+    env = WheelEnvironment()
     obs_size = env.observation_space.shape[0]
     n_actions = env.action_space.n
 
+    # Create the NN object
+    net = Net(obs_size, HIDDEN_SIZE, n_actions)
+    env.setNetwork(net)
     ## outdir = '/tmp/gazebo_gym_experiments'
     ## env = gym.wrappers.Monitor(env, directory=outdir, force=True)
     ## plotter = liveplot.LivePlot(outdir)

@@ -25,6 +25,11 @@ class MotorController:  # add class definitions
         self.logger = DataLogger()
         self.net = net
 
+    def write_motor(self,pwm):
+        msg = str(int(pwm)).ljust(7, "\t")
+        print(msg)
+        send_msg(msg)
+
     def control_routine(self, curr_pos, log):
         # get encoder value from UART
         delt_enc = receive_msg()

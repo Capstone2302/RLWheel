@@ -102,7 +102,7 @@ class BallDetector:
             self.prevPosition = self.position
             self.position = center[0]
             speed = (self.prevPosition - self.position) / delta
-            self.found = True
+            found = True
         except:
             self.position = 0
             speed = 0
@@ -133,7 +133,6 @@ class BallDetector:
         self.start_time = time.time()
         if log:
             self.logger.log_data(error, delta, self.start_time)
-
         return error, found
 
     def exit(self, log):
