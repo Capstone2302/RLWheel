@@ -119,7 +119,9 @@ def iterate_batches(env, net, batch_size):
         
         # Sample the probability distribution the NN predicted to choose
         # which action to take next.
-        action = float(act_probs_v[0])
+        PID_action=PID_control(obs)
+        # action = float(act_probs_v[0]) #CHANGE FOR TRAINING
+        action = PID_action
 
         # Run one simulation step using the action we sampled.
         next_obs, reward, is_done, _ = env.step(action)
@@ -132,7 +134,6 @@ def iterate_batches(env, net, batch_size):
         # Add the **INITIAL** observation and action we took to our list of  
         # steps for the current episode
         # print('action: ', action)
-        PID_action=PID_control(obs)
         print("obs: ", obs)
         print('PID: ', PID_action)
         print('action: ', action, '\n')
