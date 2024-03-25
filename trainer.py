@@ -253,7 +253,7 @@ if __name__ == '__main__':
 
     # Create the NN object
     net = Net(obs_size, HIDDEN_SIZE, n_actions)
-    net.load_state_dict(torch.load('runs/model/Mar07-15-37-13-rlwheel.pth'))
+    net.load_state_dict(torch.load('Models/Mar07-15-56-28-rlwheel.pth'))
 
     objective = nn.MSELoss()
     optimizer = optim.Adam(params=net.parameters(), lr=0.01)
