@@ -119,7 +119,8 @@ class WheelEnvironment():
     
     def reset(self): 
         print("**** RESETTING ****")
-        self.controller.write_motor(0)
+        msg = str(int(0))
+        send_msg(msg)
         print("Press the enter key to enable controller")
         key = input()
         while key.lower() != "":
