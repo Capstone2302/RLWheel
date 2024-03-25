@@ -32,6 +32,8 @@ class MotorController:  # add class definitions
     def control_routine(self, curr_pos, log):
         # get encoder value from UART
         delt_enc = receive_msg()
+        if delt_enc == -10000:
+            return
         curr_time = time.time()
         diff_time = curr_time - self.start_time
         self.start_time = curr_time

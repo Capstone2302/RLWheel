@@ -29,6 +29,7 @@ log_perhaps = True
 def main():
     """
     The main entry point of the application.
+    
 
     More detailed information about what the main function does goes here,
     explaining its purpose and overall program flow.
@@ -47,6 +48,7 @@ def main():
             # # prev_ball_image_time = time.time()
             controller.control_routine(err,log_perhaps)
             # controller.PWM_Response_test(-700, True)
+
 
     except KeyboardInterrupt:
         # Handle Ctrl+C to exit gracefully
