@@ -46,8 +46,18 @@ class Net(nn.Module):
         self.net = nn.Sequential(
             nn.Linear(obs_size, hidden_size),
             nn.ReLU(),
+            nn.Linear(hidden_size, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, hidden_size),
+            nn.ReLU(),
             nn.Linear(hidden_size, n_actions)
         )
+        self.integral = 0
+        self.k_p = 2.5 #2.25  # 4.5
+        self.k_i = 13#1.5
+        self.k_d = 0.225#0.5  # 2.8
 
     def forward(self, x):
         return self.net(x)
@@ -56,31 +66,9 @@ class Net(nn.Module):
 # Stores the total reward for the episode and the steps taken in the episode
 Episode = namedtuple('Episode', field_names=['reward', 'steps'])
 # Stores the observation and the action the agent took
-EpisodeStep = namedtuple('EpisodeStep', field_names=['observation', 'action', 'mentorAction'])
+EpisodeStep = namedtuple('EpisodeStep', field_names=['observation', 'action', 'PID_action'])
 
-class ImitationController:
-    def __init__(self):
-        self.integral = 0
 
-    def resetIntegral(self):
-        self.integral = 0
-    
-    def action(self, obs):
-        error = -obs[0]
-        prev_err = -obs[1]
-        wheel_speed = obs[2]
-        dt = obs[3]
-        print(obs)
-        self.integral += prev_err * dt
-        derivative = (error-prev_err)/dt
-        k_p = 2.5 #2.25  # 4.5
-        k_i = 13#1.5
-        k_d = 0.225#0.5  # 2.8
-        k_w = 0
-        pwm = k_p * error + k_d * derivative + k_i * self.integral + k_w * wheel_speed
-        print(pwm)
-        print([k_p * error, k_d * derivative, k_i * self.integral, k_w * wheel_speed])
-        return pwm
 def iterate_batches(env, net, batch_size):
     '''
     @brief a generator function that generates batches of episodes that are
@@ -106,33 +94,35 @@ def iterate_batches(env, net, batch_size):
     #   * theta_dot
     obs = env.reset()
 
-    mentor = ImitationController()
-
     # Every iteration we send the current observation to the NN and obtain
     # a list of probabilities for each action
+    # action_num = 0
     while True:
+        # action_num += 1
         # Convert the observation to a tensor that we can pass into the NN
+        # print("action num: " + str(action_num) + " obs: " + str(obs))
         obs_v = torch.FloatTensor([obs])
 
         # Run the NN and convert its output to probabilities by mapping the 
         # output through the SOFTMAX object.
-        act_probs_v = sm(net(obs_v))
+        act_probs_v = (net(obs_v))
 
         # Unpack the output of the NN to extract the probabilities associated
-        # with each action.print("Integral before reset: " + str(mentor.integral))
+        # with each action.
         # 1) Extract the data field from the NN output
         # 2) Convert the tensors from the data field into numpy array
         # 3) Extract the first element of the network output. This is where 
         #    the probability distribution are stored. The second element of the
         #    network output stores the gradient functions (which we don't use) 
-        act_probs = act_probs_v.data.numpy()[0]
+        # act_probs = act_probs_v.data.numpy()[0]
+        # print('act_probs ',act_probs)
         
         # Sample the probability distribution the NN predicted to choose
         # which action to take next.
-        action = np.random.choice(len(act_probs), p=act_probs)
+        action = float(act_probs_v[0])
 
         # Run one simulation step using the action we sampled.
-        next_obs, reward, is_done, _ = env.step(mentor.action(obs))
+        next_obs, reward, is_done, _ = env.step(action)
 
         # Process the simulation step:
         #   - add the current step reward to the total episode reward
@@ -141,7 +131,12 @@ def iterate_batches(env, net, batch_size):
 
         # Add the **INITIAL** observation and action we took to our list of  
         # steps for the current episode
-        episode_steps.append(EpisodeStep(observation=obs, action=action,mentorAction=[mentor.action(obs)]))
+        # print('action: ', action)
+        PID_action=PID_control(obs)
+        print("obs: ", obs)
+        print('PID: ', PID_action)
+        print('action: ', action, '\n')
+        episode_steps.append(EpisodeStep(observation=obs, action=action, PID_action=[PID_action]))
 
         # When we are done with this episode we will save the list of steps in 
         # the episode along with the total reward to the batch of episodes 
@@ -152,12 +147,13 @@ def iterate_batches(env, net, batch_size):
         # next episode.
         if is_done:
             batch.append(Episode(reward=episode_reward, steps=episode_steps))
+            print("n actions: ", len(episode_steps))
             episode_reward = 0.0
             episode_steps = []
             next_obs = env.reset()
-            print("Integral before reset: " + str(mentor.integral))
-            mentor.resetIntegral()
-            print("Integral after reset: " + str(mentor.integral))
+            net.integral = 0
+            # cv2.waitKey(0)
+            action_num = 0
 
             # If we accumulated enough episodes in the batch of episodes we 
             # pass the batch of episodes to the caller of this function. This
@@ -170,6 +166,22 @@ def iterate_batches(env, net, batch_size):
         # if we are not done the old observation becomes the new observation
         # and we repeat the process
         obs = next_obs
+def PID_control(obs, net):
+    # state = [x_pos, self.x_prev, dt]
+    curr_pos = obs[0]
+    e_prev = obs[1]
+    diff_time = obs[2]
+    diff_pos = 0 - curr_pos  # set_rpm - curr_rpm
+
+    # using PID variables and such, calculate PWM output
+    net.integral += e_prev * diff_time
+
+    pwm_kp = net.k_p * diff_pos
+    pwm_ki = net.k_i * (net.integral)
+    pwm_kd = net.k_d * (diff_pos - e_prev)/diff_time
+    
+    pwm_est = pwm_kp + pwm_ki + pwm_kd 
+    e_prev = diff_pos
 
 
 def filter_batch(batch, percentile):
@@ -209,48 +221,50 @@ def filter_batch(batch, percentile):
     # the case add the episodes observations and action to the train_obs and 
     # train_act
     for example in batch:
-        if example.reward < reward_bound:
-            continue
+        # if example.reward < reward_bound:
+        #     continue
         # We reach here if the episode is "elite"
         # adds the observations and actions from each episode to our training
         # sets (map iterates over each step in examples.steps and passes it 
         # to the lambda function which returns either the observation or the 
         # action of the step)
+        # print(example.steps)
         train_obs.extend(map(lambda step: step.observation, example.steps))
-        train_act.extend(map(lambda step: step.mentorAction, example.steps))
+        train_act.extend(map(lambda step: step.PID_action, example.steps))
 
     # Convert the observations and actions into tensors and return them to be  
     # used to train the NN
     train_obs_v = torch.FloatTensor(train_obs)
-    train_act_v = torch.LongTensor(train_act)
+    train_act_v = torch.FloatTensor(train_act)
     return train_obs_v, train_act_v, reward_bound, reward_mean
-
 
 if __name__ == '__main__':
     # Setup environment
     env = WheelEnvironment()
+    record = True
+    env.setRecordingState(record)
     obs_size = env.observation_space.shape[0]
     n_actions = env.action_space.n
 
+    # outdir = 'runs/video/'+folderName
+    # env = gym.wrappers.Monitor(env, directory=outdir, force=True)
+    # plotter = liveplot.LivePlot(outdir)
+
     # Create the NN object
     net = Net(obs_size, HIDDEN_SIZE, n_actions)
-    env.setNetwork(net)
-    ## outdir = '/tmp/gazebo_gym_experiments'
-    ## env = gym.wrappers.Monitor(env, directory=outdir, force=True)
-    ## plotter = liveplot.LivePlot(outdir)
+    net.load_state_dict(torch.load('runs/model/Mar07-15-37-13-rlwheel.pth'))
 
-    # PyTorch module that combines softmax and cross-entropy loss in one 
-    # expresion
-    objective = nn.CrossEntropyLoss()
+    objective = nn.MSELoss()
     optimizer = optim.Adam(params=net.parameters(), lr=0.01)
     # Tensorboard writer for plotting training performance
-    writer = SummaryWriter(comment="-wheel")
 
-    # For every batch of episodes (16 episodes per batch) we identify the
-    # episodes in the top 30% and we train our NN on them.
+    # For every batch of episodes (BATCH_SIZE episodes per batch) we identify the
+    # episodes in the top (100 - PERCENTILE) and we train our NN on them.
     for iter_no, batch in enumerate(iterate_batches(env, net, BATCH_SIZE)):
+        print("**** TRAINING ****")
         # Identify the episodes that are in the top PERCENTILE of the batch
         obs_v, acts_v, reward_b, reward_m = filter_batch(batch, PERCENTILE)
+        #replace acts_v with output from PID control 
 
         # **** TRAINING OF THE NN ****
         # Prepare for training the NN by zeroing the acumulated gradients.
@@ -262,6 +276,7 @@ if __name__ == '__main__':
 
         # Calculate the cross entropy loss between the predicted actions and 
         # the actual actions
+        
         loss_v = objective(action_scores_v, acts_v)
 
         # Train the NN: calculate the gradients using loss_v.backward() and 
@@ -269,19 +284,16 @@ if __name__ == '__main__':
         loss_v.backward()
         optimizer.step()
 
+        print("**** DONE TRAINING *****")
+
         # **** END OF TRAINING ****
 
         # Display summary of current batch
         print("%d: loss=%.3f, reward_mean=%.1f, reward_bound=%.1f" % (
             iter_no, loss_v.item(), reward_m, reward_b))
         # Save tensorboard data
-        writer.add_scalar("loss", loss_v.item(), iter_no)
-        writer.add_scalar("reward_bound", reward_b, iter_no)
-        writer.add_scalar("reward_mean", reward_m, iter_no)
 
         # When the reward is sufficiently large we consider the problem has
         # been solved
-        if reward_m > 600:
+        if reward_m > 1000:
             print("Solved!")
-            break
-    writer.close()

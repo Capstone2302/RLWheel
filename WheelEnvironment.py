@@ -93,9 +93,10 @@ class WheelEnvironment():
     def get_ball_pos_camera_callback(self):
         self.ball_pos_x, self.ball_found = self.ball_detector.ball_finder(self.do_telemetry,display=True)
 
-    def step(self, action):
+    def step(self, pwm_est):
         # publish action
-        self.controller.write_motor(action)
+        msg = str(int(pwm_est)).ljust(7, "\t")
+        send_msg(msg)
 
         # get state
         prev_found = self.ball_found
@@ -106,7 +107,7 @@ class WheelEnvironment():
         dt = self.time - self.prev_time
 
         # Define state  
-        state = [x_pos, self.x_prev, self.wheel_vel, dt]
+        state = [x_pos, self.x_prev, dt]
 
         self.x_prev = x_pos
         
@@ -132,7 +133,7 @@ class WheelEnvironment():
         self.get_ball_pos_camera_callback()
         self.get_wheel_vel_callback()
         self.get_time()
-        state = [self.ball_pos_x, prev_pos, self.wheel_vel,self.time-self.prev_time]
+        state = [self.ball_pos_x, prev_pos,self.time-self.prev_time]
         print(state)
         # Process state
         print("**** DONE RESET ****")
