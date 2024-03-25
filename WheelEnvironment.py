@@ -51,7 +51,7 @@ class WheelEnvironment():
 
         self.action_space = spaces.Discrete(self.n_actions) # output degrees 
         # cartesian product, 3 Dimensions - ball_pos_x, prev_pos_x, wheel_vel, dt
-        high = np.array([ self.x_threshold, self.x_threshold, self.x_threshold, 1])
+        high = np.array([ self.x_threshold, self.x_threshold, 1])
         self.observation_space = spaces.Box(low=-high, high = high)
 
         self.ball_detector = BallDetector()
