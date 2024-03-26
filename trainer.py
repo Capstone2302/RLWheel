@@ -121,9 +121,7 @@ def iterate_batches(env, net, batch_size):
         
         # Sample the probability distribution the NN predicted to choose
         # which action to take next.
-        print("Net integral prior tp action: " + str(net.integral))
         PID_action=PID_control(obs, net)
-        print("Net integral after action: " + str(net.integral))
         # action = float(act_probs_v[0]) #CHANGE FOR TRAINING
         action = PID_action
 
@@ -165,6 +163,7 @@ def iterate_batches(env, net, batch_size):
             # pass the batch of episodes to the caller of this function. This
             # will allow the NN to train on the top X% of the highest rewarded
             # episodes.
+            print("Batch Len:", len(batch))
             if len(batch) == batch_size:
                 yield batch
                 batch = []
@@ -180,11 +179,11 @@ def PID_control(obs, net):
 
     # using PID variables and such, calculate PWM output
     net.integral += e_prev * diff_time
-    print(obs)
+    # print(obs)
     pwm_kp = net.k_p * curr_pos
     pwm_ki = net.k_i * (net.integral)
     pwm_kd = net.k_d * (curr_pos - e_prev)/diff_time
-    print("Control out: " + str([pwm_kp,pwm_ki,pwm_kd]))
+    # print("Control out: " + str([pwm_kp,pwm_ki,pwm_kd]))
     pwm_est = pwm_kp + pwm_ki + pwm_kd 
     return pwm_est
 
