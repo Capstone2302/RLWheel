@@ -124,6 +124,7 @@ def iterate_batches(env, net, batch_size):
         action = PID_action
 
         # Run one simulation step using the action we sampled.
+        print("action: ",action)
         next_obs, reward, is_done, _ = env.step(action)
 
         # Process the simulation step:
@@ -182,8 +183,7 @@ def PID_control(obs, net):
     pwm_kd = net.k_d * (diff_pos - e_prev)/diff_time
     
     pwm_est = pwm_kp + pwm_ki + pwm_kd 
-    e_prev = diff_pos
-
+    return pwm_est
 
 def filter_batch(batch, percentile):
     '''
