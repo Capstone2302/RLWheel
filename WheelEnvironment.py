@@ -51,7 +51,7 @@ class WheelEnvironment():
 
         self.action_space = spaces.Discrete(self.n_actions) # output degrees 
         # cartesian product, 3 Dimensions - ball_pos_x, prev_pos_x, wheel_vel, dt
-        high = np.array([ self.x_threshold, self.x_threshold, 1])
+        high = np.array([ self.x_threshold, self.x_threshold, 1, 20])
         self.observation_space = spaces.Box(low=-high, high = high)
 
         self.ball_detector = BallDetector()
@@ -60,6 +60,7 @@ class WheelEnvironment():
         self.wheel_pos = None
         self.wheel_vel = 0
         self.ball_vel = None
+        self.integral = 0
         self.prev_time = time.time()-1
         self.time = time.time()
         self.x_prev = 0
@@ -108,7 +109,7 @@ class WheelEnvironment():
         dt = self.time - self.prev_time
 
         # Define state  
-        state = [self.ball_pos_x, self.x_prev, dt]
+        state = [self.ball_pos_x, self.x_prev, dt, self.integral]
 
         self.x_prev = self.ball_pos_x
         
@@ -135,7 +136,7 @@ class WheelEnvironment():
         self.get_ball_pos_camera_callback()
         self.get_wheel_vel_callback()
         self.get_time()
-        state = [self.ball_pos_x, prev_pos,self.time-self.prev_time]
+        state = [self.ball_pos_x, prev_pos,self.time-self.prev_time, self.integral]
         # Process state
         print("**** DONE RESET ****")
         return state

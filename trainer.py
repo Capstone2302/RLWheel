@@ -121,7 +121,7 @@ def iterate_batches(env, net, batch_size):
         
         # Sample the probability distribution the NN predicted to choose
         # which action to take next.
-        PID_action=PID_control(obs, net)
+        PID_action=PID_control(obs, env)
         # action = float(act_probs_v[0]) #CHANGE FOR TRAINING
         action = PID_action
 
@@ -155,7 +155,7 @@ def iterate_batches(env, net, batch_size):
             episode_reward = 0.0
             episode_steps = []
             next_obs = env.reset()
-            net.integral = 0
+            env.integral = 0
             # cv2.waitKey(0)
             action_num = 0
 
@@ -171,17 +171,17 @@ def iterate_batches(env, net, batch_size):
         # if we are not done the old observation becomes the new observation
         # and we repeat the process
         obs = next_obs
-def PID_control(obs, net):
+def PID_control(obs, env):
     # state = [x_pos, self.x_prev, dt]
     curr_pos = obs[0]
     e_prev = obs[1]
     diff_time = obs[2]
 
     # using PID variables and such, calculate PWM output
-    net.integral += e_prev * diff_time
+    env.integral += e_prev * diff_time
     # print(obs)
     pwm_kp = net.k_p * curr_pos
-    pwm_ki = net.k_i * (net.integral)
+    pwm_ki = net.k_i * (env.integral)
     pwm_kd = net.k_d * (curr_pos - e_prev)/diff_time
     # print("Control out: " + str([pwm_kp,pwm_ki,pwm_kd]))
     pwm_est = pwm_kp + pwm_ki + pwm_kd 
