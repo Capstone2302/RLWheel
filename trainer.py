@@ -19,6 +19,8 @@ from tensorboardX import SummaryWriter
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import signal
+from datetime import datetime
 
 from WheelEnvironment import WheelEnvironment
 
@@ -240,6 +242,12 @@ def filter_batch(batch, percentile):
     train_act_v = torch.FloatTensor(train_act)
     return train_obs_v, train_act_v, reward_bound, reward_mean
 
+# Function to handle interrupt signal
+def handle_interrupt( folderName, net):
+    torch.save(net.state_dict(), 'Models/'+folderName+'.pth')
+    print("Cleanup complete. Exiting.")
+    os._exit(0)
+
 if __name__ == '__main__':
     # Setup environment
     env = WheelEnvironment()
@@ -255,6 +263,9 @@ if __name__ == '__main__':
     # Create the NN object
     net = Net(obs_size, HIDDEN_SIZE, n_actions)
     net.load_state_dict(torch.load('Models/Mar07-15-56-28-rlwheel.pth'))
+    
+    folderName = datetime.now().strftime("%b%d-%H-%M-%S-rlwheel")
+    signal.signal(signal.SIGINT, lambda signum, frame: handle_interrupt(folderName, net))
 
     objective = nn.MSELoss()
     optimizer = optim.Adam(params=net.parameters(), lr=0.01)
