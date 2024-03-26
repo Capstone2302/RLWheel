@@ -119,7 +119,7 @@ def iterate_batches(env, net, batch_size):
         
         # Sample the probability distribution the NN predicted to choose
         # which action to take next.
-        PID_action=PID_control(obs)
+        PID_action=PID_control(obs, net)
         # action = float(act_probs_v[0]) #CHANGE FOR TRAINING
         action = PID_action
 
