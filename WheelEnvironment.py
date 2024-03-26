@@ -51,7 +51,7 @@ class WheelEnvironment():
 
         self.action_space = spaces.Discrete(self.n_actions) # output degrees 
         # cartesian product, 3 Dimensions - ball_pos_x, prev_pos_x, wheel_vel, dt
-        high = np.array([ self.x_threshold, self.x_threshold, self.x_threshold, 1])
+        high = np.array([ self.x_threshold, self.x_threshold, 1])
         self.observation_space = spaces.Box(low=-high, high = high)
 
         self.ball_detector = BallDetector()
@@ -65,7 +65,7 @@ class WheelEnvironment():
         self.x_prev = 0
         self.y_prev = 0
         self.ball_pos_x_camera = -9999999
-        self.ball_found = False
+        self.ball_found = True
 
     def setNetwork(self, net):
         self.net = net
@@ -92,34 +92,35 @@ class WheelEnvironment():
 
     def get_ball_pos_camera_callback(self):
         self.ball_pos_x, self.ball_found = self.ball_detector.ball_finder(self.do_telemetry,display=True)
+        self.ball_pos_x = - self.ball_pos_x
 
     def step(self, pwm_est):
         # publish action
         msg = str(int(pwm_est)).ljust(7, "\t")
         send_msg(msg)
 
-        # get state
+        # get stat
         prev_found = self.ball_found
         self.get_ball_pos_camera_callback()
         self.get_wheel_vel_callback()
-        x_pos = self.ball_pos_x
+        
         self.get_time()
         dt = self.time - self.prev_time
 
         # Define state  
-        state = [x_pos, self.x_prev, dt]
+        state = [self.ball_pos_x, self.x_prev, dt]
 
-        self.x_prev = x_pos
+        self.x_prev = self.ball_pos_x
         
         # Check for end condition
         done = bool(not self.ball_found and not prev_found)
-        
         reward = 1-abs(self.ball_pos_x)/self.x_threshold
         return state, reward, done, {}
     
     def reset(self): 
         print("**** RESETTING ****")
-        self.controller.write_motor(0)
+        msg = str(int(0))
+        send_msg(msg)
         print("Press the enter key to enable controller")
         key = input()
         while key.lower() != "":
@@ -134,7 +135,6 @@ class WheelEnvironment():
         self.get_wheel_vel_callback()
         self.get_time()
         state = [self.ball_pos_x, prev_pos,self.time-self.prev_time]
-        print(state)
         # Process state
         print("**** DONE RESET ****")
         return state

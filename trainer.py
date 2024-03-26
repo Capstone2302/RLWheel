@@ -119,11 +119,14 @@ def iterate_batches(env, net, batch_size):
         
         # Sample the probability distribution the NN predicted to choose
         # which action to take next.
-        PID_action=PID_control(obs)
+        print("Net integral prior tp action: " + str(net.integral))
+        PID_action=PID_control(obs, net)
+        print("Net integral after action: " + str(net.integral))
         # action = float(act_probs_v[0]) #CHANGE FOR TRAINING
         action = PID_action
 
         # Run one simulation step using the action we sampled.
+        # print("action: ",action)
         next_obs, reward, is_done, _ = env.step(action)
 
         # Process the simulation step:
@@ -134,9 +137,9 @@ def iterate_batches(env, net, batch_size):
         # Add the **INITIAL** observation and action we took to our list of  
         # steps for the current episode
         # print('action: ', action)
-        print("obs: ", obs)
-        print('PID: ', PID_action)
-        print('action: ', action, '\n')
+        # print("obs: ", obs)
+        # print('PID: ', PID_action)
+        # print('action: ', action, '\n')
         episode_steps.append(EpisodeStep(observation=obs, action=action, PID_action=[PID_action]))
 
         # When we are done with this episode we will save the list of steps in 
@@ -172,18 +175,16 @@ def PID_control(obs, net):
     curr_pos = obs[0]
     e_prev = obs[1]
     diff_time = obs[2]
-    diff_pos = 0 - curr_pos  # set_rpm - curr_rpm
 
     # using PID variables and such, calculate PWM output
     net.integral += e_prev * diff_time
-
-    pwm_kp = net.k_p * diff_pos
+    print(obs)
+    pwm_kp = net.k_p * curr_pos
     pwm_ki = net.k_i * (net.integral)
-    pwm_kd = net.k_d * (diff_pos - e_prev)/diff_time
-    
+    pwm_kd = net.k_d * (curr_pos - e_prev)/diff_time
+    print("Control out: " + str([pwm_kp,pwm_ki,pwm_kd]))
     pwm_est = pwm_kp + pwm_ki + pwm_kd 
-    e_prev = diff_pos
-
+    return pwm_est
 
 def filter_batch(batch, percentile):
     '''
@@ -253,7 +254,7 @@ if __name__ == '__main__':
 
     # Create the NN object
     net = Net(obs_size, HIDDEN_SIZE, n_actions)
-    net.load_state_dict(torch.load('runs/model/Mar07-15-37-13-rlwheel.pth'))
+    net.load_state_dict(torch.load('Models/Mar07-15-56-28-rlwheel.pth'))
 
     objective = nn.MSELoss()
     optimizer = optim.Adam(params=net.parameters(), lr=0.01)
