@@ -26,7 +26,7 @@ from WheelEnvironment import WheelEnvironment
 
 
 HIDDEN_SIZE = 128 # number of neurons in hidden layer
-BATCH_SIZE = 16   # number of episodes to play for every network iteration
+BATCH_SIZE = 1   # number of episodes to play for every network iteration
 PERCENTILE = 70   # only the episodes with the top 30% total reward are used 
                   # for training
 
@@ -121,6 +121,7 @@ def iterate_batches(env, net, batch_size):
         
         # Sample the probability distribution the NN predicted to choose
         # which action to take next.
+        print("obs: ", obs)
         PID_action=PID_control(obs, env)
         # action = float(act_probs_v[0]) #CHANGE FOR TRAINING
         action = PID_action
@@ -261,7 +262,7 @@ if __name__ == '__main__':
 
     # Create the NN object
     net = Net(obs_size, HIDDEN_SIZE, n_actions)
-    net.load_state_dict(torch.load('Models/Mar07-15-56-28-rlwheel.pth'))
+    net.load_state_dict(torch.load('Models/Mar25-18-41-20-rlwheel.pth'))
     
     folderName = datetime.now().strftime("%b%d-%H-%M-%S-rlwheel")
     signal.signal(signal.SIGINT, lambda signum, frame: handle_interrupt(folderName, net))
