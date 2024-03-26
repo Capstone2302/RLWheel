@@ -65,7 +65,7 @@ class WheelEnvironment():
         self.x_prev = 0
         self.y_prev = 0
         self.ball_pos_x_camera = -9999999
-        self.ball_found = False
+        self.ball_found = True
 
     def setNetwork(self, net):
         self.net = net
@@ -113,7 +113,6 @@ class WheelEnvironment():
         
         # Check for end condition
         done = bool(not self.ball_found and not prev_found)
-        
         reward = 1-abs(self.ball_pos_x)/self.x_threshold
         return state, reward, done, {}
     
@@ -135,7 +134,6 @@ class WheelEnvironment():
         self.get_wheel_vel_callback()
         self.get_time()
         state = [self.ball_pos_x, prev_pos,self.time-self.prev_time]
-        print(state)
         # Process state
         print("**** DONE RESET ****")
         return state
