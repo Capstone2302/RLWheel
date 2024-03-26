@@ -92,24 +92,25 @@ class WheelEnvironment():
 
     def get_ball_pos_camera_callback(self):
         self.ball_pos_x, self.ball_found = self.ball_detector.ball_finder(self.do_telemetry,display=True)
+        self.ball_pos_x = - self.ball_pos_x
 
     def step(self, pwm_est):
         # publish action
         msg = str(int(pwm_est)).ljust(7, "\t")
         send_msg(msg)
 
-        # get state
+        # get stat
         prev_found = self.ball_found
         self.get_ball_pos_camera_callback()
         self.get_wheel_vel_callback()
-        x_pos = self.ball_pos_x
+        
         self.get_time()
         dt = self.time - self.prev_time
 
         # Define state  
-        state = [x_pos, self.x_prev, dt]
+        state = [self.ball_pos_x, self.x_prev, dt]
 
-        self.x_prev = x_pos
+        self.x_prev = self.ball_pos_x
         
         # Check for end condition
         done = bool(not self.ball_found and not prev_found)
