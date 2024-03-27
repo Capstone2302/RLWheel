@@ -16,7 +16,7 @@ Created - 03/12/2023
 import time
 from .uart_handlr import receive_msg, send_msg
 from .data_logger import DataLogger
-
+import numpy as np
 
 class MotorController:  # add class definitions
     def __init__(self):
@@ -28,17 +28,41 @@ class MotorController:  # add class definitions
         self.start_time = time.time()
         self.e_prev = 0
         self.logger = DataLogger()
+        self.r = None # TODO
 
-    def control_routine(self, curr_pos, log):
+    def control_routine(self, curr_pos, wheel_pos, log):
+        current_time = time.time()
+        dt = current_time - self.start_time
+        self.prev_time = current_time
+
+        self.stabalize(curr_pos, wheel_pos, dt)
+        # self.PID_mode(self, curr_pos)
+
+    def stabalize(self, ball_pos, wheel_pos, dt):
+        derivative = (ball_pos - self.prev_err) / dt
+        self.prev_err = ball_pos
+
+        proportional = -np.pi/2 * ball_pos
+
+        pwm_est = proportional
+
+        msg = str(int(pwm_est)).ljust(7, "\t")
+        send_msg(msg)
+
+        if (round(derivative,5) == 0) and (ball_pos == 0): # TODO check
+            # self.state += 1
+            # if (abs(wheel_pos) < abs(wheel_pos - np.pi)) or (abs(wheel_pos - 2*np.pi) < abs(wheel_pos - np.pi)):
+            #     self.joint_pub.publish(0) # TODO
+            # else:
+            #     self.joint_pub.publish(np.pi) # TODO
+            # time.sleep(1)
+            print("stabalized")
+    
+    def PID_mode(self, curr_pos):
         # get encoder value from UART
-        delt_enc = receive_msg()
-        if delt_enc == -10000:
-            return
         curr_time = time.time()
         diff_time = curr_time - self.start_time
         self.start_time = curr_time
-
-        curr_rpm = (delt_enc * 60) / (diff_time * 2400)  # CCW is positive
 
         diff_pos = 0 - curr_pos  # set_rpm - curr_rpm
 
@@ -48,38 +72,12 @@ class MotorController:  # add class definitions
         pwm_kp = self.k_p * diff_pos
         pwm_ki = self.k_i * (self.integrator_val)
         pwm_kd = self.k_d * (diff_pos - self.e_prev)/diff_time
-        # if pwm_kd > 200 or pwm_kd < -200:
-        #     pwm_kd = 0
-        pwm_kw = self.k_w * curr_rpm
-        # if self.e_prev == 0 and diff_pos == 0 :
-        #     pwm_kw = 0
-        #     pwm_ki = 0
-        pwm_est = pwm_kp + pwm_ki + pwm_kd + pwm_kw
+        pwm_est = pwm_kp + pwm_ki + pwm_kd 
         self.e_prev = diff_pos
 
-        # pwm_kp = self.k_p * diff_pos/diff_time
-        # pwm_ki = self.k_i * (self.integrator_val + diff_pos/diff_time)
-        # pwm_kd = self.k_d * (diff_pos/diff_time - self.e_prev)
-        # pwm_kw = self.k_w * curr_rpm
-        # pwm_est = (pwm_kp + pwm_ki + pwm_kd + pwm_kw)
-        # print(pwm_est)
-        # self.e_prev = diff_pos/diff_time
-
-        # send messages over UART
-        msg = str(int(pwm_est)).ljust(7, "\t")
+        msg = str(int(-pwm_est)).ljust(7, "\t")
         send_msg(msg)
-        if log:
-            self.logger.log_data(
-                delt_enc,
-                diff_time,
-                curr_rpm,
-                diff_pos,
-                curr_time,
-                pwm_kp,
-                pwm_ki,
-                pwm_kd,
-                pwm_kw,
-            )
+    
     def PWM_Response_test(self, pwm_val, log):
         # get encoder value from UART
         delt_enc = receive_msg()
