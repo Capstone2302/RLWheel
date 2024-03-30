@@ -273,30 +273,32 @@ if __name__ == '__main__':
     # For every batch of episodes (BATCH_SIZE episodes per batch) we identify the
     # episodes in the top (100 - PERCENTILE) and we train our NN on them.
     for iter_no, batch in enumerate(iterate_batches(env, net, BATCH_SIZE)):
-        print("**** TRAINING ****")
         # Identify the episodes that are in the top PERCENTILE of the batch
         obs_v, acts_v, reward_b, reward_m = filter_batch(batch, PERCENTILE)
-        #replace acts_v with output from PID control 
+        for j in range(10):
+                
+            print("**** TRAINING ****")
+            #replace acts_v with output from PID control 
 
-        # **** TRAINING OF THE NN ****
-        # Prepare for training the NN by zeroing the acumulated gradients.
-        optimizer.zero_grad()
+            # **** TRAINING OF THE NN ****
+            # Prepare for training the NN by zeroing the acumulated gradients.
+            optimizer.zero_grad()
 
-        # Calculate the predicted probabilities for each action in the best 
-        # episodes
-        action_scores_v = net(obs_v)
+            # Calculate the predicted probabilities for each action in the best 
+            # episodes
+            action_scores_v = net(obs_v)
 
-        # Calculate the cross entropy loss between the predicted actions and 
-        # the actual actions
-        
-        loss_v = objective(action_scores_v, acts_v)
+            # Calculate the cross entropy loss between the predicted actions and 
+            # the actual actions
+            
+            loss_v = objective(action_scores_v, acts_v)
 
-        # Train the NN: calculate the gradients using loss_v.backward() and 
-        # then adjust the weights based on the gradients using optimizer.step()
-        loss_v.backward()
-        optimizer.step()
+            # Train the NN: calculate the gradients using loss_v.backward() and 
+            # then adjust the weights based on the gradients using optimizer.step()
+            loss_v.backward()
+            optimizer.step()
 
-        print("**** DONE TRAINING *****")
+            print("**** DONE TRAINING *****")
 
         # **** END OF TRAINING ****
 
