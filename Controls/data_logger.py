@@ -5,7 +5,10 @@ Description:
 Datalogger
 
 Usage:
--
+- Log data from ball detection and motor controller
+
+Author:
+Ashli Forbes
 
 Date:
 Created - 04/12/2023
