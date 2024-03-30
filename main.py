@@ -36,20 +36,22 @@ def main():
     explaining its purpose and overall program flow.
 
     """
-    # ball_detector = BallDetector()
+    ball_detector = BallDetector()
     # prev_ball_image_time = time.time()
 
     try:
         center_position(controller)
         enable_controller()
         while True:
-            # err, reset_integrator = ball_detector.ball_finder(
-            #     log_perhaps, display=True
-            # )
+            err, reset_integrator = ball_detector.ball_finder(
+                log_perhaps, display=True
+    
+    
+            )
             # # print("Loop processing time: " + str(time.time() - prev_ball_image_time))
             # # prev_ball_image_time = t
             # ime.time()
-            controller.control_routine(0, 0,log_perhaps)
+            controller.control_routine(err,log_perhaps)
             # controller.PWM_Response_test(-700, True)
 
     except KeyboardInterrupt:

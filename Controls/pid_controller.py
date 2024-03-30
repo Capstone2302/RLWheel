@@ -37,20 +37,21 @@ class MotorController:  # add class definitions
         self.encoder.set_center_pos()
         print(self.encoder.curr_pos_rad)
 
-    def control_routine(self, curr_pos, wheel_pos, log):
+    def control_routine(self, curr_pos, log):
         current_time = time.time()
         dt = current_time - self.start_time
         self.prev_time = current_time
-        self.stabalize(curr_pos, wheel_pos, dt)
+        self.stabalize(curr_pos, dt)
         # self.PID_mode(self, curr_pos)
 
-    def stabalize(self, ball_pos, wheel_pos, dt):
-        derivative = (ball_pos - self.prev_err) / dt
-        self.prev_err = ball_pos
-
+    def stabalize(self, ball_pos, dt):
+        derivative = (ball_pos - self.e_prev) / dt
+        self.e_prev = ball_pos
         proportional = -np.pi/2 * ball_pos
-
-        pwm_est = proportional
+        print("prop: ", proportional)
+        print("ballpos: ", ball_pos)
+        wheel_pos = self.encoder.delt_to_rad(receive_msg())
+        pwm_est = proportional + wheel_pos
 
         msg = str(int(pwm_est)).ljust(7, "\t")
         send_msg(msg)
