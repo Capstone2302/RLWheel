@@ -24,7 +24,7 @@ from Controls.ball_detection import BallDetector
 import time
 
 controller = MotorController()
-log_perhaps = True
+log_perhaps = False
 
 
 def main():
@@ -47,8 +47,9 @@ def main():
             #     log_perhaps, display=True
             # )
             # # print("Loop processing time: " + str(time.time() - prev_ball_image_time))
-            # # prev_ball_image_time = time.time()
-            controller.control_routine(0, log_perhaps)
+            # # prev_ball_image_time = t
+            # ime.time()
+            controller.control_routine(0, 0,log_perhaps)
             # controller.PWM_Response_test(-700, True)
 
     except KeyboardInterrupt:

@@ -16,6 +16,7 @@ Created - 03/12/2023
 import time
 from .uart_handlr import receive_msg, send_msg
 from .data_logger import DataLogger
+from .encoder_processor import EncoderProcesser
 import numpy as np
 
 
@@ -29,13 +30,17 @@ class MotorController:  # add class definitions
         self.start_time = time.time()
         self.e_prev = 0
         self.logger = DataLogger()
+        self.encoder = EncoderProcesser()
         self.r = None  # TODO
+
+    def init_position(self):
+        self.encoder.set_center_pos()
+        print(self.encoder.curr_pos_rad)
 
     def control_routine(self, curr_pos, wheel_pos, log):
         current_time = time.time()
         dt = current_time - self.start_time
         self.prev_time = current_time
-
         self.stabalize(curr_pos, wheel_pos, dt)
         # self.PID_mode(self, curr_pos)
 
@@ -43,14 +48,14 @@ class MotorController:  # add class definitions
         derivative = (ball_pos - self.prev_err) / dt
         self.prev_err = ball_pos
 
-        proportional = -np.pi / 2 * ball_pos
+        proportional = -np.pi/2 * ball_pos
 
         pwm_est = proportional
 
         msg = str(int(pwm_est)).ljust(7, "\t")
         send_msg(msg)
 
-        if (round(derivative, 5) == 0) and (ball_pos == 0):  # TODO check
+        if (round(derivative,5) == 0) and (ball_pos == 0): # TODO check
             # self.state += 1
             # if (abs(wheel_pos) < abs(wheel_pos - np.pi)) or (abs(wheel_pos - 2*np.pi) < abs(wheel_pos - np.pi)):
             #     self.joint_pub.publish(0) # TODO
@@ -64,6 +69,7 @@ class MotorController:  # add class definitions
         curr_time = time.time()
         diff_time = curr_time - self.start_time
         self.start_time = curr_time
+        diff_wheel_pos = self.encoder.delt_to_rad(receive_msg())
 
         diff_pos = 0 - curr_pos  # set_rpm - curr_rpm
 
