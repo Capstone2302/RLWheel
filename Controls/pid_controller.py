@@ -68,31 +68,37 @@ class MotorController:  # add class definitions
             time.sleep(1)
             print("stabalized")
 
-    def tilt(self, ball_pos):
-        msg = str(int(30)).ljust(7, "\t")
-        send_msg(msg)
-        print("tilt")
-        if ball_pos > 80:
-            self.state += 1
-            # time.sleep(1000)
-    def PID_mode(self, ball_pos, dt):
-
+    def PID_mode(self, curr_pos):
         # get encoder value from UART
-        diff_wheel_pos = self.encoder.delt_to_rad(receive_msg())
-
-        diff_pos = 0 - ball_pos  # set_rpm - curr_rpm
-
+        curr_time = time.time()
+        diff_time = curr_time - self.start_time
+        self.start_time = curr_time
+        delt_enc =receive_msg()
+        curr_pos = self.encoder.delt_to_rad(delt_enc)
+        diff_pos = curr_pos-set_pos
         # using PID variables and such, calculate PWM output
-        self.integrator_val += self.e_prev * dt
+        self.integrator_val += self.e_prev * diff_time
 
-        pwm_kp = self.k_p * diff_pos
-        pwm_ki = self.k_i * (self.integrator_val)
-        pwm_kd = self.k_d * (diff_pos - self.e_prev) / dt
+        pwm_kp = k_p * diff_pos
+        pwm_ki = k_i * (self.integrator_val)
+        pwm_kd = k_d * (diff_pos - self.e_prev) / diff_time
         pwm_est = pwm_kp + pwm_ki + pwm_kd
         self.e_prev = diff_pos
 
         msg = str(int(-pwm_est)).ljust(7, "\t")
         send_msg(msg)
+        if log:
+            self.logger.log_data(
+                delt_enc,
+                diff_time,
+                0,
+                set_pos,
+                curr_time,
+                pwm_kp,
+                pwm_ki,
+                pwm_kd,
+                0,
+            )
 
     def PWM_Response_test(self, pwm_val, log):
         # get encoder value from UART
