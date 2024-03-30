@@ -26,10 +26,11 @@ import time
 controller = MotorController()
 log_perhaps = True
 
+
 def main():
     """
     The main entry point of the application.
-    
+
 
     More detailed information about what the main function does goes here,
     explaining its purpose and overall program flow.
@@ -47,9 +48,8 @@ def main():
             # )
             # # print("Loop processing time: " + str(time.time() - prev_ball_image_time))
             # # prev_ball_image_time = time.time()
-            controller.control_routine(10,log_perhaps)
+            controller.control_routine(0, log_perhaps)
             # controller.PWM_Response_test(-700, True)
-
 
     except KeyboardInterrupt:
         # Handle Ctrl+C to exit gracefully
@@ -59,20 +59,22 @@ def main():
         controller.exit(log_perhaps)
         # ball_detector.exit(log_perhaps)
 
+
 def center_position(controller):
     print("Press the enter key to set the 0 point for the encoder position")
     key = input()
 
     controller.init_position()
-    while key.lower() != '':
+    while key.lower() != "":
         print("You didn't press space. Please try again.")
         key = input()
     print("enter key pressed, 0 point set")
 
+
 def enable_controller():
     print("Press the enter key to enable controller")
     key = input()
-    while key.lower() != '':
+    while key.lower() != "":
         print("You didn't press space. Please try again.")
         key = input()
     print("enter key pressed, enabling controller")
@@ -80,4 +82,3 @@ def enable_controller():
 
 if __name__ == "__main__":
     main()
-
