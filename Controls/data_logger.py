@@ -29,7 +29,8 @@ class DataLogger:
         self.delt_enc = []
         self.set_point = []
         self.loop_time = []
-        self.curr_rpm = []
+        self.curr_set = []
+        self.diff_set = []
         self.pwm_kp = []
         self.pwm_ki = []
         self.pwm_kd = []
@@ -40,7 +41,8 @@ class DataLogger:
         self,
         delt_enc,
         loop_time,
-        curr_rpm,
+        curr_set,
+        diff_set,
         set_point,
         curr_time,
         pwm_kp,
@@ -50,7 +52,8 @@ class DataLogger:
     ):
         self.delt_enc.append(delt_enc)
         self.loop_time.append(loop_time)
-        self.curr_rpm.append(curr_rpm)
+        self.curr_set.append(curr_set)
+        self.diff_set.append(diff_set)
         self.set_point.append(set_point)
         self.curr_time.append(curr_time)
         self.pwm_kp.append(pwm_kp)
@@ -62,7 +65,8 @@ class DataLogger:
         data = {
             "DeltEncoder": self.delt_enc,
             "LoopTimes": self.loop_time,
-            "CurrRpm": self.curr_rpm,
+            "CurrRpm": self.curr_set,
+            "DiffSet": self.diff_set,
             "SetPoint": self.set_point,
             "CurrTime": self.curr_time,
             "KpContrib": self.pwm_kp,

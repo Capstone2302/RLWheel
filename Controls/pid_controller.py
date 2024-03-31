@@ -41,7 +41,7 @@ class MotorController:  # add class definitions
     def receive_delt_enc(self):
         return receive_msg()
 
-    def send_pwm_val(self,pwm_val):
+    def send_pwm_val(self, pwm_val):
         msg = str(int(pwm_val)).ljust(7, "\t")
         if send_msg(msg):
             return True
@@ -65,13 +65,13 @@ class MotorController:  # add class definitions
         derivative = (ball_pos - self.e_prev) / dt
         self.e_prev = ball_pos
         proportional = np.pi/2 * ball_pos
+        proportional = -np.pi / 2 * ball_pos
         print("prop: ", proportional)
         print("ballpos: ", ball_pos)
         wheel_pos = self.encoder.delt_to_rad(receive_msg())
         pwm_est = proportional + wheel_pos
 
-        msg = str(int(pwm_est)).ljust(7, "\t")
-        send_msg(msg)
+        self.send_pwm_val(pwm_est)
 
         if (round(derivative,5) == 0) and (abs(ball_pos) < 10): # TODO check
             self.state += 1
@@ -96,18 +96,17 @@ class MotorController:  # add class definitions
         pwm_est = pwm_kp + pwm_ki + pwm_kd
         self.e_prev = diff_pos
 
-        msg = str(int(-pwm_est)).ljust(7, "\t")
-        send_msg(msg)
+        self.send_pwm_val(-pwm_est)
 
     def WheelPosPID(self, set_pos, log):
-        k_p = 175
-        k_i = 100
-        k_d = 0
+        k_p = 150
+        k_i = 75
+        k_d = 5
         # get encoder value from UART
         curr_time = time.time()
         diff_time = curr_time - self.start_time
         self.start_time = curr_time
-        delt_enc =receive_msg()
+        delt_enc = receive_msg()
         curr_pos = self.encoder.delt_to_rad(delt_enc)
         # using PID variables and such, calculate PWM output
         self.integrator_val += self.e_prev * diff_time
@@ -123,13 +122,13 @@ class MotorController:  # add class definitions
         pwm_est = pwm_kp + pwm_ki + pwm_kd
         self.e_prev = diff_pos
 
-        msg = str(int(pwm_est)).ljust(7, "\t")
-        send_msg(msg)
+        self.send_pwm_val(pwm_est)
         if log:
             self.logger.log_data(
                 delt_enc,
                 diff_time,
                 curr_pos,
+                diff_pos,
                 set_pos,
                 curr_time,
                 pwm_kp,

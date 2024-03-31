@@ -22,6 +22,7 @@ import serial
 from Controls.pid_controller import MotorController
 from Controls.ball_detection import BallDetector
 from Controls.control_tests import TestClass
+
 tests = TestClass()
 controller = MotorController()
 log_perhaps = True
@@ -47,23 +48,22 @@ def main():
             # err, reset_integrator = ball_detector.ball_finder(
             #     log_perhaps, display=True
 
-    
-    
             # )
             # # # print("Loop processing time: " + str(time.time() - prev_ball_image_time))
             # # # prev_ball_image_time = t
             # # ime.time()
             # controller.control_routine(err,log_perhaps)
             # # controller.PWM_Response_test(-700, True)
-            # tests.Wheel_PID_Test_Gradient( 2
-            #                             , log_perhaps)
-            tests.Wheel_PID_Test_Square( 2 , 9, log_perhaps)
+            tests.Wheel_PID_Test_Gradient(2, log_perhaps)
+            # tests.Wheel_PID_Test_Square( 2 , 9, log_perhaps)
+            # controller.WheelPosPID(6,log_perhaps)
 
     except KeyboardInterrupt:
         # Handle Ctrl+C to exit gracefully
         print("\nScript terminated by user.")
 
     finally:
+        # controller.exit(log_perhaps)
         tests.cont.exit(log_perhaps)
         # ball_detector.exit(log_perhaps)
 

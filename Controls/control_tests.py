@@ -15,9 +15,10 @@ Created - 30/03/20234
 """
 
 from .pid_controller import MotorController
-import time 
+import time
 import numpy as np
 from scipy import signal
+
 
 class TestClass:
     def __init__(self):
@@ -49,19 +50,18 @@ class TestClass:
 
     def Wheel_PID_Test_Gradient(self, max, log_perhaps):
         # continuous tests
-        max = max*100
+        max = max * 100
         for i in range(max, 0, -1):
-            self.cont.WheelPosPID(i/100, log_perhaps)
-            print(i/100)
+            self.cont.WheelPosPID(i / 100, log_perhaps)
+            print(i / 100)
         for i in range(0, max, 1):
-            self.cont.WheelPosPID(i/100 , log_perhaps)
+            self.cont.WheelPosPID(i / 100, log_perhaps)
 
     def Wheel_PID_Test_Square(self, max, square_len, log_perhaps):
         # step response tests
         t = np.linspace(0, 1, 500, endpoint=False)
         step = signal.square(2 * np.pi * 5 * t)
-        step = step*max/2 + max/2
+        step = step * max / 2 + max / 2
         for i in step:
             print(i)
             self.cont.WheelPosPID(i, log_perhaps)
-
