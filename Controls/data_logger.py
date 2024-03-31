@@ -62,6 +62,7 @@ class DataLogger:
         self.pwm_kw.append(pwm_kw)
 
     def write_file(self):
+        
         data = {
             "DeltEncoder": self.delt_enc,
             "LoopTimes": self.loop_time,
