@@ -60,8 +60,8 @@ class TestClass:
     def Wheel_PID_Test_Square(self, max, square_len, log_perhaps):
         # step response tests
         t = np.linspace(0, 1, 500, endpoint=False)
-        step = signal.square(2 * np.pi * 5 * t)
-        step = step * max / 2 + max / 2
+        step = signal.square(2 * np.pi *2* t)
+        step = step * max / 2 + max 
         for i in step:
             print(i)
             self.cont.WheelPosPID(i, log_perhaps)

@@ -99,9 +99,9 @@ class MotorController:  # add class definitions
         self.send_pwm_val(-pwm_est)
 
     def WheelPosPID(self, set_pos, log):
-        k_p = 150
-        k_i = 75
-        k_d = 5
+        k_p = 225
+        k_i = 0
+        k_d = -5
         # get encoder value from UART
         curr_time = time.time()
         diff_time = curr_time - self.start_time
