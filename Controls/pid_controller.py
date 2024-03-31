@@ -32,40 +32,53 @@ class MotorController:  # add class definitions
         self.logger = DataLogger()
         self.encoder = EncoderProcesser()
         self.r = None  # TODO
+        self.state = 0
 
     def init_position(self):
         self.encoder.set_center_pos()
         print(self.encoder.curr_pos_rad)
 
+    def receive_delt_enc(self):
+        return receive_msg()
+
+    def send_pwm_val(self, pwm_val):
+        msg = str(int(pwm_val)).ljust(7, "\t")
+        if send_msg(msg):
+            return True
+        else:
+            return False
+
     def control_routine(self, curr_pos, log):
         current_time = time.time()
         dt = current_time - self.start_time
+        self.start_time = current_time
+
         self.prev_time = current_time
-        self.stabalize(curr_pos, dt)
-        # self.PID_mode(self, curr_pos)
+        if self.state == 0:
+            self.stabalize(ball_pos, dt)
+        if self.state == 1:
+            self.tilt(ball_pos)
+        if self.state == 2:
+            self.PID_mode(ball_pos, dt)
 
     def stabalize(self, ball_pos, dt):
         derivative = (ball_pos - self.e_prev) / dt
         self.e_prev = ball_pos
-        proportional = -np.pi/2 * ball_pos
+        proportional = np.pi/2 * ball_pos
+        proportional = -np.pi / 2 * ball_pos
         print("prop: ", proportional)
         print("ballpos: ", ball_pos)
         wheel_pos = self.encoder.delt_to_rad(receive_msg())
         pwm_est = proportional + wheel_pos
 
-        msg = str(int(pwm_est)).ljust(7, "\t")
-        send_msg(msg)
+        self.send_pwm_val(pwm_est)
 
-        if (round(derivative,5) == 0) and (ball_pos == 0): # TODO check
-            # self.state += 1
-            # if (abs(wheel_pos) < abs(wheel_pos - np.pi)) or (abs(wheel_pos - 2*np.pi) < abs(wheel_pos - np.pi)):
-            #     self.joint_pub.publish(0) # TODO
-            # else:
-            #     self.joint_pub.publish(np.pi) # TODO
-            # time.sleep(1)
+        if (round(derivative,5) == 0) and (abs(ball_pos) < 10): # TODO check
+            self.state += 1
+            time.sleep(1)
             print("stabalized")
 
-    def PID_mode(self, curr_pos):
+    def BallPosPID(self, curr_pos):
         # get encoder value from UART
         curr_time = time.time()
         diff_time = curr_time - self.start_time
@@ -83,52 +96,50 @@ class MotorController:  # add class definitions
         pwm_est = pwm_kp + pwm_ki + pwm_kd
         self.e_prev = diff_pos
 
-        msg = str(int(-pwm_est)).ljust(7, "\t")
-        send_msg(msg)
+        self.send_pwm_val(-pwm_est)
 
-    def PWM_Response_test(self, pwm_val, log):
+    def WheelPosPID(self, set_pos, log):
+        k_p = 225
+        k_i = 0
+        k_d = -5
         # get encoder value from UART
-        delt_enc = receive_msg()
         curr_time = time.time()
         diff_time = curr_time - self.start_time
         self.start_time = curr_time
+        delt_enc = receive_msg()
+        curr_pos = self.encoder.delt_to_rad(delt_enc)
+        # using PID variables and such, calculate PWM output
+        self.integrator_val += self.e_prev * diff_time
+        error = set_pos - curr_pos
+        if abs(error) > np.pi:
+            error = error - 2 * np.pi * np.copysign(1, error)
 
-        curr_rpm = (delt_enc * 60) / (diff_time * 2400)  # CCW is positive
-        # send messages over UART
-        msg = str(int(pwm_val)).ljust(7, "\t")
-        send_msg(msg)
-        print(curr_rpm)
+        diff_pos = error
+
+        pwm_kp = k_p * diff_pos
+        pwm_ki = k_i * (self.integrator_val)
+        pwm_kd = k_d * (self.e_prev - diff_pos) / diff_time
+        pwm_est = pwm_kp + pwm_ki + pwm_kd
+        self.e_prev = diff_pos
+
+        self.send_pwm_val(pwm_est)
         if log:
             self.logger.log_data(
                 delt_enc,
                 diff_time,
-                curr_rpm,
-                0,
+                curr_pos,
+                diff_pos,
+                set_pos,
                 curr_time,
-                pwm_val,
-                0,
-                0,
+                pwm_kp,
+                pwm_ki,
+                pwm_kd,
                 0,
             )
-
-    def PID_response_test1(self, max, log_perhaps):
-        # continuous tests
-        for i in range(max, -max, 1):
-            self.control_routine(i / 10, log_perhaps)
-
-        for i in range(-max, max, 1):
-            self.control_routine(i / 10, log_perhaps)
-
-    def PID_response_test2(self, max, square_len, log_perhaps):
-        # step response tests
-        for i in range(max * 6):
-            if i % square_len < square_len / 2:
-                self.control_routine(max, log_perhaps)
-            else:
-                self.control_routine(-max, log_perhaps)
 
     def exit(self, log):
         msg = str(0).ljust(7, "\t")
         send_msg(msg)
         if log:
+            print("trying to write")
             self.logger.write_file()

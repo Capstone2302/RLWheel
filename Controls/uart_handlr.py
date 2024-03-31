@@ -16,6 +16,7 @@ def send_msg(command):  # TODO allow for general usb ports
     ser = serial.Serial("/dev/ttyUSB0", baudrate=115200, stopbits=1, timeout=100)
     ser.write(command.encode())
     ser.close
+    return True
 
 
 def receive_msg():
