@@ -32,22 +32,29 @@ class MotorController:  # add class definitions
         self.logger = DataLogger()
         self.encoder = EncoderProcesser()
         self.r = None  # TODO
+        self.state = 0
 
     def init_position(self):
         self.encoder.set_center_pos()
         print(self.encoder.curr_pos_rad)
 
-    def control_routine(self, curr_pos, log):
+    def control_routine(self, ball_pos, log):
         current_time = time.time()
         dt = current_time - self.start_time
+        self.start_time = current_time
+
         self.prev_time = current_time
-        self.stabalize(curr_pos, dt)
-        # self.PID_mode(self, curr_pos)
+        if self.state == 0:
+            self.stabalize(ball_pos, dt)
+        if self.state == 1:
+            self.tilt(ball_pos)
+        if self.state == 2:
+            self.PID_mode(ball_pos, dt)
 
     def stabalize(self, ball_pos, dt):
         derivative = (ball_pos - self.e_prev) / dt
         self.e_prev = ball_pos
-        proportional = -np.pi/2 * ball_pos
+        proportional = np.pi/2 * ball_pos
         print("prop: ", proportional)
         print("ballpos: ", ball_pos)
         wheel_pos = self.encoder.delt_to_rad(receive_msg())
@@ -56,30 +63,31 @@ class MotorController:  # add class definitions
         msg = str(int(pwm_est)).ljust(7, "\t")
         send_msg(msg)
 
-        if (round(derivative,5) == 0) and (ball_pos == 0): # TODO check
-            # self.state += 1
-            # if (abs(wheel_pos) < abs(wheel_pos - np.pi)) or (abs(wheel_pos - 2*np.pi) < abs(wheel_pos - np.pi)):
-            #     self.joint_pub.publish(0) # TODO
-            # else:
-            #     self.joint_pub.publish(np.pi) # TODO
-            # time.sleep(1)
+        if (round(derivative,5) == 0) and (abs(ball_pos) < 10): # TODO check
+            self.state += 1
+            time.sleep(1)
             print("stabalized")
 
-    def PID_mode(self, curr_pos):
+    def tilt(self, ball_pos):
+        msg = str(int(30)).ljust(7, "\t")
+        send_msg(msg)
+        print("tilt")
+        if ball_pos > 80:
+            self.state += 1
+            # time.sleep(1000)
+    def PID_mode(self, ball_pos, dt):
+
         # get encoder value from UART
-        curr_time = time.time()
-        diff_time = curr_time - self.start_time
-        self.start_time = curr_time
         diff_wheel_pos = self.encoder.delt_to_rad(receive_msg())
 
-        diff_pos = 0 - curr_pos  # set_rpm - curr_rpm
+        diff_pos = 0 - ball_pos  # set_rpm - curr_rpm
 
         # using PID variables and such, calculate PWM output
-        self.integrator_val += self.e_prev * diff_time
+        self.integrator_val += self.e_prev * dt
 
         pwm_kp = self.k_p * diff_pos
         pwm_ki = self.k_i * (self.integrator_val)
-        pwm_kd = self.k_d * (diff_pos - self.e_prev) / diff_time
+        pwm_kd = self.k_d * (diff_pos - self.e_prev) / dt
         pwm_est = pwm_kp + pwm_ki + pwm_kd
         self.e_prev = diff_pos
 
