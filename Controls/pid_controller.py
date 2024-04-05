@@ -22,9 +22,9 @@ import numpy as np
 
 class MotorController:  # add class definitions
     def __init__(self):
-        self.k_p = 2.5  # 2.25  # 4.5
-        self.k_i = 13  # 1.5
-        self.k_d = 0.225  # 0.5  # 2.8
+        self.k_p = 3 # 2.25  # 4.5
+        self.k_i = 0  # 1.5
+        self.k_d = 0  # 0.5  # 2.8
         self.k_w = 0  # -2.9
         self.integrator_val = 0
         self.start_time = time.time()
@@ -49,26 +49,63 @@ class MotorController:  # add class definitions
         else:
             return False
         
-    def tilt(self, ball_pos):
-        msg = str(int(30)).ljust(7, "\t")
-        send_msg(msg)
-        print("tilt")
-        if ball_pos > 80:
+    def tilt(self, ball_pos,dt, log):
+        # self.WheelPosPID(0.0628,ball_pos,log)
+        self.send_pwm_val(50)
+        print(ball_pos)
+        if ball_pos > 30:
             self.state += 1
             # time.sleep(1000)
+        # if log:
+        #     self.l
+        # ogger.log_data(
+        #         0,
+        #         dt,
+        #         ball_pos,
+        #         0,
+        #         0,
+        #         0,
+        #         60,
+        #         0,
+        #         0,
+        #         ball_pos,
+        #     )
             
+    def up_yank(self, ball_pos,dt, log):
+        # self.WheelPosPID(0.0628,ball_pos,log)
+        self.BallPosPID(ball_pos,log)
+        print("tilt")
+        if ball_pos < 6:
+            self.state += 1
+            # time.sleep(1000)
+        # if log:
+        #     self.l
+        # ogger.log_data(
+        #         0,
+        #         dt,
+        #         ball_pos,
+        #         0,
+        #         0,
+        #         0,
+        #         60,
+        #         0,
+        #         0,
+        #         ball_pos,
+        #     )
+            
+    
     def control_routine(self, ball_pos, log):
         current_time = time.time()
         dt = current_time - self.start_time
         self.start_time = current_time
-
         self.prev_time = current_time
         if self.state == 0:
-            self.stabalize(ball_pos, dt,log)
-        # if self.state == 1:
-        #     self.tilt(ball_pos)
+            # self.stabalize(ball_pos, dt,log)
+            self.tilt(ball_pos,dt, log)
+        if self.state == 1:
+            self.BallPosPID(ball_pos,log)
         # if self.state == 2:
-        #     self.PID_mode(ball_pos, dt)
+            self.send_pwm_val(0)
 
     def stabalize(self, ball_pos, dt,log):
         # wheel_pos = self.encoder.delt_to_rad(receive_msg())
@@ -101,12 +138,13 @@ class MotorController:  # add class definitions
         #     time.sleep(1)
         #     print("stabalized")
 
-    def BallPosPID(self, curr_pos):
+    def BallPosPID(self, curr_pos,log):
         # get encoder value from UART
+        print("in ball")
         curr_time = time.time()
         diff_time = curr_time - self.start_time
         self.start_time = curr_time
-
+        delt_enc = receive_msg()
         diff_pos = 0 - curr_pos  # set_rpm - curr_rpm
 
         # using PID variables and such, calculate PWM output
@@ -117,8 +155,21 @@ class MotorController:  # add class definitions
         pwm_kd = self.k_d * (diff_pos - self.e_prev) / diff_time
         pwm_est = pwm_kp + pwm_ki + pwm_kd
         self.e_prev = diff_pos
-
-        self.send_pwm_val(-pwm_est)
+        print(pwm_est)
+        self.send_pwm_val(pwm_est)
+        if log:
+            self.logger.log_data(
+                delt_enc,
+                diff_time,
+                curr_pos,
+                diff_pos,
+                0,
+                curr_time,
+                pwm_kp,
+                pwm_ki,
+                pwm_kd,
+                curr_pos,
+            )
 
     def WheelPosPID(self, set_pos, ball_pos, log):
         k_p = 225
@@ -132,6 +183,7 @@ class MotorController:  # add class definitions
         self.start_time = curr_time
         delt_enc = receive_msg()
         curr_pos = self.encoder.delt_to_rad(delt_enc)
+        print(curr_pos)
         # using PID variables and such, calculate PWM output
         self.integrator_val += self.wheel_error * diff_time
         error = set_pos - curr_pos
@@ -146,7 +198,7 @@ class MotorController:  # add class definitions
         pwm_est = pwm_kp + pwm_ki + pwm_kd
         self.wheel_error = diff_pos
 
-        self.send_pwm_val(pwm_est)
+        # self.send_pwm_val(pwm_est)
         if log:
             self.logger.log_data(
                 delt_enc,

@@ -51,7 +51,7 @@ def main():
             # # # print("Loop processing time: " + str(time.time() - prev_ball_image_time))
             # # # prev_ball_image_time = t
             # # ime.time()
-            controller.control_routine(err,log_perhaps)
+            # controller.control_routine(err,log_perhaps)
             # # controller.PWM_Response_test(-700, True)
             # tests.Wheel_PID_Test_Gradient(2, log_perhaps)
             # tests.Wheel_PID_Test_Square( 2 , 9, log_perhaps)
