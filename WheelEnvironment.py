@@ -119,7 +119,22 @@ class WheelEnvironment():
         return state, reward, done, {}
     
     def reset(self): 
-        print("**** RESETTING ****")
+        print("**** TURNING WHEEL OFF ****")
+        msg = str(int(0)).ljust(7, "\t")
+        send_msg(msg)
+        time.sleep(1)
+        self.get_ball_pos_camera_callback()
+        prev_pos = self.ball_pos_x
+        self.get_time()
+        self.get_ball_pos_camera_callback()
+        self.get_wheel_vel_callback()
+        self.get_time()
+        state = [self.ball_pos_x, prev_pos,self.time-self.prev_time, self.integral]
+        # Process state
+        return state
+    
+    def resetOn(self): 
+        print("**** TURNING WHEEL ON ****")
         msg = str(int(0)).ljust(7, "\t")
         send_msg(msg)
         time.sleep(1)
@@ -131,12 +146,11 @@ class WheelEnvironment():
         print("enter key pressed, enabling controller")
         self.get_ball_pos_camera_callback()
         prev_pos = self.ball_pos_x
-        print(prev_pos)
         self.get_time()
         self.get_ball_pos_camera_callback()
         self.get_wheel_vel_callback()
         self.get_time()
         state = [self.ball_pos_x, prev_pos,self.time-self.prev_time, self.integral]
         # Process state
-        print("**** DONE RESET ****")
+        print("**** WHEEL ON ****")
         return state

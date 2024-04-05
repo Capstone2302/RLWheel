@@ -95,6 +95,7 @@ def iterate_batches(env, net, batch_size):
     #   * theta
     #   * theta_dot
     obs = env.reset()
+    env.resetOn()
 
     # Every iteration we send the current observation to the NN and obtain
     # a list of probabilities for each action
@@ -116,15 +117,16 @@ def iterate_batches(env, net, batch_size):
         # 3) Extract the first element of the network output. This is where 
         #    the probability distribution are stored. The second element of the
         #    network output stores the gradient functions (which we don't use) 
-        # act_probs = act_probs_v.data.numpy()[0]
+        act_probs = act_probs_v.data.numpy()[0]
         # print('act_probs ',act_probs)
         
         # Sample the probability distribution the NN predicted to choose
         # which action to take next.
-        print("obs: ", obs)
+        # print("obs: ", obs)
         PID_action=PID_control(obs, env)
-        # action = float(act_probs_v[0]) #CHANGE FOR TRAINING
+        net_action = float(act_probs_v[0]) #CHANGE FOR TRAINING
         action = PID_action
+        # print("pwm: " + str(action))
 
         # Run one simulation step using the action we sampled.
         # print("action: ",action)
@@ -141,7 +143,7 @@ def iterate_batches(env, net, batch_size):
         # print("obs: ", obs)
         # print('PID: ', PID_action)
         # print('action: ', action, '\n')
-        episode_steps.append(EpisodeStep(observation=obs, action=action, PID_action=[PID_action]))
+        episode_steps.append(EpisodeStep(observation=obs, action=net_action, PID_action=PID_action))
 
         # When we are done with this episode we will save the list of steps in 
         # the episode along with the total reward to the batch of episodes 
@@ -188,43 +190,32 @@ def PID_control(obs, env):
     pwm_est = pwm_kp + pwm_ki + pwm_kd 
     return pwm_est
 
-def filter_batch(batch, percentile):
+def filter_episode(episode):
     '''
-    @brief given a batch of episodes it determines which are the "elite" 
-           episodes in the top percentile of the batch based on the episode
-           reward
-    @param batch:
+    @brief given episode it determines which steps are the ones that align
+    with imitation controller's reference action
+    @param episode:
     @param percentile:
     @retval train_obs_v: observation associated with elite episodes
     @retval train_act_v: actions associated with elite episodes (mapped to 
                          observations above)
-    @retval reward_bound: the threshold reward over which an episode is 
-                          considered elite - used for monitoring progress
-    @retval reward_mean: mean reward - used for monitoring progress
     '''
-
-    # Extract each episode reward from the batch of episodes
-    rewards = list(map(lambda s: s.reward, batch))
-
-    # Determine what is the threshold reward (the reward_bound) above which
-    # an episode is considered "elite" and will be used for training
-    reward_bound = np.percentile(rewards, percentile)
-    
-    # Calculate the mean of the reward for all the episodes in the batch. We
-    # use this as an indicator for how well the training is progressing. We 
-    # hope the mean reward will trand higher as training progresses.
-    reward_mean = float(np.mean(rewards))
     
     # We will accumulate the observations and actions we want to train on in 
     # the train_obs and train_act variables
     train_obs = []
     train_act = []
+    mentor_act = []
 
     # For each episode in the batch determine if the episode is an "elite" 
     # episode (it has a reward above the threshold reward_bound). If this is 
     # the case add the episodes observations and action to the train_obs and 
     # train_act
-    for example in batch:
+    for step in episode.steps:
+        if np.abs(step.PID_action - step.action) > 20:
+            train_obs.append(step.observation)
+            train_act.append(step.action)
+            mentor_act.append(step.PID_action)
         # if example.reward < reward_bound:
         #     continue
         # We reach here if the episode is "elite"
@@ -233,14 +224,15 @@ def filter_batch(batch, percentile):
         # to the lambda function which returns either the observation or the 
         # action of the step)
         # print(example.steps)
-        train_obs.extend(map(lambda step: step.observation, example.steps))
-        train_act.extend(map(lambda step: step.PID_action, example.steps))
 
     # Convert the observations and actions into tensors and return them to be  
     # used to train the NN
-    train_obs_v = torch.FloatTensor(train_obs)
-    train_act_v = torch.FloatTensor(train_act)
-    return train_obs_v, train_act_v, reward_bound, reward_mean
+    train_obs_v = torch.FloatTensor(train_obs).requires_grad_(True)
+    train_act_v = torch.FloatTensor(train_act).requires_grad_(True)
+    mentor_act  = torch.FloatTensor(mentor_act).requires_grad_(True)
+    proportion_beyond_thresh = len(train_obs_v)/len(episode.steps)
+    print(proportion_beyond_thresh)
+    return train_obs_v, train_act_v, mentor_act, proportion_beyond_thresh
 
 # Function to handle interrupt signal
 def handle_interrupt( folderName, net):
@@ -270,45 +262,40 @@ if __name__ == '__main__':
     objective = nn.MSELoss()
     optimizer = optim.Adam(params=net.parameters(), lr=0.01)
     # Tensorboard writer for plotting training performance
+    writer = SummaryWriter(comment="-wheel")
 
     # For every batch of episodes (BATCH_SIZE episodes per batch) we identify the
     # episodes in the top (100 - PERCENTILE) and we train our NN on them.
     for iter_no, batch in enumerate(iterate_batches(env, net, BATCH_SIZE)):
         # Identify the episodes that are in the top PERCENTILE of the batch
-        obs_v, acts_v, reward_b, reward_m = filter_batch(batch, PERCENTILE)
-        for j in range(10):
-                
-            print("**** TRAINING ****")
+        obs_v, acts_v, mentor_acts_v, proportion_bad = filter_episode(batch[0])
+        print("**** TRAINING ****")
+        print("Percentage deviant: " + str(proportion_bad))
+        if len((acts_v)) > 10:
             #replace acts_v with output from PID control 
 
             # **** TRAINING OF THE NN ****
             # Prepare for training the NN by zeroing the acumulated gradients.
             optimizer.zero_grad()
 
-            # Calculate the predicted probabilities for each action in the best 
-            # episodes
-            action_scores_v = net(obs_v)
-
             # Calculate the cross entropy loss between the predicted actions and 
             # the actual actions
             
-            loss_v = objective(action_scores_v, acts_v)
+            loss_v = objective(mentor_acts_v, acts_v)
 
             # Train the NN: calculate the gradients using loss_v.backward() and 
             # then adjust the weights based on the gradients using optimizer.step()
             loss_v.backward()
             optimizer.step()
 
-            print("**** DONE TRAINING *****")
-
+        print("**** DONE TRAINING *****")
         # **** END OF TRAINING ****
 
         # Display summary of current batch
-        print("%d: loss=%.3f, reward_mean=%.1f, reward_bound=%.1f" % (
-            iter_no, loss_v.item(), reward_m, reward_b))
+        print("%d: loss=%.3f, proportion deviant=%.3f" % (
+            iter_no, loss_v.item(), proportion_bad))
         # Save tensorboard data
-
-        # When the reward is sufficiently large we consider the problem has
-        # been solved
-        if reward_m > 1000:
-            print("Solved!")
+        writer.add_scalar("loss", loss_v.item(), iter_no)
+        writer.add_scalar("proportion deviant", proportion_bad, iter_no)
+        env.resetOn()
+    writer.close()
