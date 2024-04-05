@@ -87,7 +87,7 @@ class BallDetector:
             ((x, y), radius) = cv2.minEnclosingCircle(c)
             M = cv2.moments(c)
 
-            if radius < 20 or radius >50:
+            if radius < 20 or radius > 50:
                 print("no ball")
                 reset_integrator = True
                 center = (int(BallDetector.setpoint), int(10))

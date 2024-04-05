@@ -29,51 +29,50 @@ class DataLogger:
         self.delt_enc = []
         self.set_point = []
         self.loop_time = []
-        self.curr_set = []
+        self.wheel_pos = []
         self.diff_set = []
+        self.ball_pos = []
         self.pwm_kp = []
         self.pwm_ki = []
         self.pwm_kd = []
-        self.pwm_kw = []
         self.curr_time = []
 
     def log_data(
         self,
         delt_enc,
         loop_time,
-        curr_set,
         diff_set,
         set_point,
         curr_time,
         pwm_kp,
         pwm_ki,
         pwm_kd,
-        pwm_kw,
+        wheel_pos,
+        ball_pos,
     ):
         self.delt_enc.append(delt_enc)
         self.loop_time.append(loop_time)
-        self.curr_set.append(curr_set)
         self.diff_set.append(diff_set)
         self.set_point.append(set_point)
         self.curr_time.append(curr_time)
+        self.wheel_pos.append(wheel_pos)
+        self.ball_pos.append(ball_pos)
         self.pwm_kp.append(pwm_kp)
         self.pwm_ki.append(pwm_ki)
         self.pwm_kd.append(pwm_kd)
-        self.pwm_kw.append(pwm_kw)
 
     def write_file(self):
-        
         data = {
             "DeltEncoder": self.delt_enc,
             "LoopTimes": self.loop_time,
-            "CurrRpm": self.curr_set,
+            "WheelPos": self.wheel_pos,
+            "BallPos": self.ball_pos,
             "DiffSet": self.diff_set,
             "SetPoint": self.set_point,
             "CurrTime": self.curr_time,
             "KpContrib": self.pwm_kp,
             "KiContrib": self.pwm_ki,
             "KdContrib": self.pwm_kd,
-            "KwContrib": self.pwm_kw,
         }
         df = pd.DataFrame(data)
         df.to_csv(self.filepath)
