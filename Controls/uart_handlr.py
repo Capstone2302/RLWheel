@@ -10,17 +10,19 @@ Date:
 Created - 26/11/2023
 """
 import serial
+RESET_MSG = b'RESET\n'
 
-last =0 
 def send_msg(command):  # TODO allow for general usb ports
     ser = serial.Serial("/dev/ttyUSB0", baudrate=115200, stopbits=1, timeout=100)
     ser.write(command.encode())
     ser.close
-
+    return True
 
 def receive_msg():
     ser = serial.Serial("/dev/ttyUSB0", baudrate=115200, stopbits=1, timeout=100)
     line = ser.read_until(b'\n', size=12)
+    if line == RESET_MSG:
+        return False
     line = line.decode().strip().strip('\x00')
     ser.close()
     return int(line)

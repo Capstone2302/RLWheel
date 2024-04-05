@@ -5,7 +5,7 @@ Description:
 Class that runs and abstracts the PID control loop of the motor
 
 Usage:
-- Is called from other aspects of the program to output the PWM 
+- Is called from other  aspects of the program to output the PWM 
 
 Author:
 Ashli Forbes
@@ -29,9 +29,21 @@ class MotorController:  # add class definitions
         self.e_prev = 0
         self.logger = DataLogger()
 
+    def receive_delt_enc(self):
+        return receive_msg()
+
+    def send_pwm_val(self, pwm_val):
+        msg = str(int(pwm_val)).ljust(7, "\t")
+        if send_msg(msg):
+            return True
+        else:
+            return False
+
     def control_routine(self, curr_pos, log):
         # get encoder value from UART
-        delt_enc = receive_msg()
+        delt_enc = self.receive_delt_enc()
+        if delt_enc == False:
+            return False
         curr_time = time.time()
         diff_time = curr_time - self.start_time
         self.start_time = curr_time
@@ -80,7 +92,9 @@ class MotorController:  # add class definitions
             )
     def PWM_Response_test(self, pwm_val, log):
         # get encoder value from UART
-        delt_enc = receive_msg()
+        delt_enc = self.receive_delt_enc()
+        if delt_enc == False:
+            return False
         curr_time = time.time()
         diff_time = curr_time - self.start_time
         self.start_time = curr_time

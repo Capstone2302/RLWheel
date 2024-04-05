@@ -46,7 +46,7 @@ def main():
             )
             # # print("Loop processing time: " + str(time.time() - prev_ball_image_time))
             # # prev_ball_image_time = time.time()
-            controller.control_routine(err,log_perhaps)
+            controller.control_routine(err,log_perhaps) #TODO: make it so that when this gets false, it makesa file and then waiting for the go ahead to start the loop again
             # controller.PWM_Response_test(-700, Tr
     
 
