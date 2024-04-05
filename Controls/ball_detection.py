@@ -23,7 +23,7 @@ class BallDetector:
     IM_HEIGHT = 240
     FRAMERATE = 30
     loglength = 1000
-    setpoint = IM_WIDTH / 2
+    setpoint = 264/ 2
     cutoff = 200
 
     def __init__(self):
@@ -73,7 +73,11 @@ class BallDetector:
     def ball_finder(self, log, display):
         # returns error of ball position from setpoin
         _, frame = self.camera.read()
+        # # Define the coordinates of the region you want to crop
+        x, y, width, height = 80,0,264 , 190  # Example values, adjust as needed
 
+        # Crop the frame
+        frame = frame[y:y+height, x:x+width]
         blurred = cv2.GaussianBlur(frame, (3, 3), 0)
 
         colorMask = cv2.inRange(frame, BallDetector.lower_ball, BallDetector.upper_ball)
@@ -87,8 +91,8 @@ class BallDetector:
             ((x, y), radius) = cv2.minEnclosingCircle(c)
             M = cv2.moments(c)
 
-            if radius < 20 or radius > 50:
-                print("no ball")
+            if radius < 22 or radius > 50:
+                # print("no ball")
                 reset_integrator = True
                 center = (int(BallDetector.setpoint), int(10))
             elif M["m00"] != 0 and int(M["m01"] / M["m00"]) < self.cutoff:

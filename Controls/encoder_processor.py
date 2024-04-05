@@ -14,7 +14,7 @@ import numpy as np
 
 class EncoderProcesser:
     def __init__(self):
-        self.ticks_per_rev = 2400 / 2
+        self.ticks_per_rev = 2400 / 8
         self.orientation = "clockwise"
         self.curr_pos_ticks = 0
         self.curr_pos_rad = 0
@@ -22,7 +22,7 @@ class EncoderProcesser:
     def delt_to_rad(self, delt_enc):
         self.curr_pos_ticks += delt_enc
         scale = 2 * np.pi / (self.ticks_per_rev)
-
+        print(self.curr_pos_ticks)
         if self.curr_pos_ticks >= self.ticks_per_rev:
             self.curr_pos_ticks -= self.ticks_per_rev
             return self.curr_pos_rad

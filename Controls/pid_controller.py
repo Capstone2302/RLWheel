@@ -59,7 +59,8 @@ class MotorController:  # add class definitions
         self.state += 1
 
     def tilt(self, ball_pos, log):
-        self.send_pwm_val(50)
+        self.send_pwm_val(35)
+        print("tilting")
         print(ball_pos)
         if ball_pos > 30:
             self.state += 1
@@ -80,20 +81,21 @@ class MotorController:  # add class definitions
 
     def control_routine(self, ball_pos, log):
         self.start_time = time.time()
-        if self.state == 0:
-            self.stabilize(ball_pos, log)
-        elif self.state == 1:
-            self.tilt(ball_pos, log)
-        elif self.state == 2:
-            self.up_yank(ball_pos, log)
-        elif self.state == 3:
-            self.catch_ball(ball_pos, log)
+        # if self.state == 0:
+        #     self.stabilize(ball_pos, log)
+        # elif self.state == 1:
+        #     self.tilt(ball_pos, log)
+        # elif self.state == 2:
+        #     self.up_yank(ball_pos, log)
+        # elif self.state == 3:
+        #     self.catch_ball(ball_pos, log)
+
+        self.encoder.delt_to_rad(receive_msg())
 
     # tuned utility functions
 
     def BallPosPID(self, curr_pos, log):
         # get encoder value from UART
-        print("in ball")
         curr_time = time.time()
         diff_time = curr_time - self.start_time
         self.start_time = curr_time
