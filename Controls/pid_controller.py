@@ -21,7 +21,7 @@ from .data_logger import DataLogger
 class MotorController:  # add class definitions
     def __init__(self):
         self.k_p = 2.5 #2.25  # 4.5
-        self.k_i = 13#1.5
+        self.k_i = 11#1.5
         self.k_d = 0.225#0.5  # 2.8
         self.k_w = 0  # -2.9
         self.integrator_val = 0
@@ -80,7 +80,8 @@ class MotorController:  # add class definitions
             )
     def PWM_Response_test(self, pwm_val, log):
         # get encoder value from UART
-        delt_enc = receive_msg()
+        # delt_enc = receive_msg()
+        delt_enc =0
         curr_time = time.time()
         diff_time = curr_time - self.start_time
         self.start_time = curr_time

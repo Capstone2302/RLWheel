@@ -23,4 +23,4 @@ def receive_msg():
     line = ser.read_until(b'\n', size=12)
     line = line.decode().strip().strip('\x00')
     ser.close()
-    return int(line)
+    return 0

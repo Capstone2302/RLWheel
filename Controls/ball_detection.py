@@ -15,7 +15,7 @@ class BallDetector:
     # upper_ball = np.array([90, 90, 90])  # BGR encoding
     # black ball
 
-    lower_ball = np.array([80, 70, 0])  # BGR encoding
+    lower_ball = np.array([40, 30, 0])  # BGR encoding
     upper_ball = np.array([250, 160, 70])  # BGR encoding
 
     IM_WIDTH = 424
@@ -29,7 +29,7 @@ class BallDetector:
         self.controlLoopTimes = [0] * 100
         self.positionLog = [0] * self.loglength
         self.errorsLog = [0] * self.loglength
-        self.camera = cv2.VideoCapture(2, cv2.CAP_V4L2)
+        self.camera = cv2.VideoCapture(0, cv2.CAP_V4L2)
         self.start_time = time.time()
         self.prevPosition = self.setpoint
         self.position = self.setpoint

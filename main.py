@@ -24,7 +24,7 @@ from Controls.ball_detection import BallDetector
 import time
 
 controller = MotorController()
-log_perhaps = False
+log_perhaps = True
 
 def main():
     """
