@@ -59,7 +59,7 @@ class MotorController:  # add class definitions
         self.state += 1
 
     def tilt(self, ball_pos, log):
-        self.send_pwm_val(35)
+        self.WheelPosPID(0.35, ball_pos, log)
         print("tilting")
         print(ball_pos)
         if ball_pos > 30:
@@ -69,13 +69,13 @@ class MotorController:  # add class definitions
         self.BallPosPID(ball_pos, log)
         print("yank up")
         if ball_pos < 6:
-            self.state += 1
+            self.state = 0
 
     def catch_ball(self, ball_pos, log):
         print("catching ball")
         self.WheelPosPID(np.pi, ball_pos, log)
-        if ball_pos < 6:
-            self.state = 0
+        # if ball_pos < 6:
+        #     self.state = 0
 
     # main control loop
 
@@ -86,9 +86,9 @@ class MotorController:  # add class definitions
         # elif self.state == 1:
         #     self.tilt(ball_pos, log)
         # elif self.state == 2:
-        #     self.up_yank(ball_pos, log)
-        # elif self.state == 3:
         #     self.catch_ball(ball_pos, log)
+        # # elif self.state == 3:
+        # #     self.catch_ball(ball_pos, log)
 
         self.encoder.delt_to_rad(receive_msg())
 
@@ -110,7 +110,6 @@ class MotorController:  # add class definitions
         pwm_kd = self.k_d * (diff_pos - self.e_prev) / diff_time
         pwm_est = pwm_kp + pwm_ki + pwm_kd
         self.e_prev = diff_pos
-        print(pwm_est)
         self.send_pwm_val(pwm_est)
         if log:
             self.logger.log_data(
@@ -127,8 +126,8 @@ class MotorController:  # add class definitions
             )
 
     def WheelPosPID(self, set_pos, ball_pos, log):
-        k_p = 225
-        k_i = 0
+        k_p = 100
+        k_i = 1
         k_d = 0
         if set_pos > np.pi * 2:
             print("over 2 pi input")

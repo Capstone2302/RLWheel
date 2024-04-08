@@ -14,7 +14,7 @@ import numpy as np
 
 class EncoderProcesser:
     def __init__(self):
-        self.ticks_per_rev = 2400 / 8
+        self.ticks_per_rev = 180
         self.orientation = "clockwise"
         self.curr_pos_ticks = 0
         self.curr_pos_rad = 0

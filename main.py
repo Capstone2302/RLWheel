@@ -43,7 +43,6 @@ def main():
         enable_controller()
         while True:
             err, reset_integrator = ball_detector.ball_finder(log_perhaps, display=True)
-
             controller.control_routine(err, log_perhaps)
 
     except KeyboardInterrupt:

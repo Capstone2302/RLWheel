@@ -37,15 +37,7 @@ class TestClass:
         print(curr_rpm)
         if log:
             self.logger.log_data(
-                delt_enc,
-                diff_time,
-                curr_rpm,
-                0,
-                curr_time,
-                pwm_val,
-                0,
-                0,
-                0,
+                delt_enc, diff_time, curr_rpm, 0, curr_time, pwm_val, 0, 0, 0
             )
 
     def Wheel_PID_Test_Gradient(self, max, log_perhaps):

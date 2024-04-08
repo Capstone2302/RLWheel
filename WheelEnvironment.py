@@ -37,7 +37,9 @@ from Controls.uart_handlr import receive_msg, send_msg
 
 class WheelEnvironment:
     def __init__(self):
-        self.x_threshold = 50  # when when x is farther than THRESHOLD pixels from the center_pixel, reset
+        self.x_threshold = (
+            50
+        )  # when when x is farther than THRESHOLD pixels from the center_pixel, reset
         self.y_threshold = 450  # when we is greater than this reset
         self.center_pixel = 399
         self.vel_threshold = 30
