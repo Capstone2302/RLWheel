@@ -29,9 +29,19 @@ class MotorController:  # add class definitions
         self.e_prev = 0
         self.logger = DataLogger()
 
+    def receive_delt_enc(self):
+        return receive_msg()
+
+    def send_pwm_val(self, pwm_val):
+        msg = str(int(pwm_val)).ljust(7, "\t")
+        if send_msg(msg):
+            return True
+        else:
+            return False
+        
     def control_routine(self, curr_pos, log):
         # get encoder value from UART
-        delt_enc = receive_msg()
+        delt_enc = self.receive_delt_enc()
         curr_time = time.time()
         diff_time = curr_time - self.start_time
         self.start_time = curr_time
@@ -46,26 +56,12 @@ class MotorController:  # add class definitions
         pwm_kp = self.k_p * diff_pos
         pwm_ki = self.k_i * (self.integrator_val)
         pwm_kd = self.k_d * (diff_pos - self.e_prev)/diff_time
-        # if pwm_kd > 200 or pwm_kd < -200:
-        #     pwm_kd = 0
         pwm_kw = self.k_w * curr_rpm
-        # if self.e_prev == 0 and diff_pos == 0 :
-        #     pwm_kw = 0
-        #     pwm_ki = 0
         pwm_est = pwm_kp + pwm_ki + pwm_kd + pwm_kw
         self.e_prev = diff_pos
 
-        # pwm_kp = self.k_p * diff_pos/diff_time
-        # pwm_ki = self.k_i * (self.integrator_val + diff_pos/diff_time)
-        # pwm_kd = self.k_d * (diff_pos/diff_time - self.e_prev)
-        # pwm_kw = self.k_w * curr_rpm
-        # pwm_est = (pwm_kp + pwm_ki + pwm_kd + pwm_kw)
-        # print(pwm_est)
-        # self.e_prev = diff_pos/diff_time
-
         # send messages over UART
-        msg = str(int(pwm_est)).ljust(7, "\t")
-        send_msg(msg)
+        self.send_pwm_val(pwm_est)
         if log:
             self.logger.log_data(
                 delt_enc,

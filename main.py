@@ -43,12 +43,9 @@ def main():
         while True:
             err, reset_integrator = ball_detector.ball_finder(
                 log_perhaps, display=True
-            )
-            # # print("Loop processing time: " + str(time.time() - prev_ball_image_time))
-            # # prev_ball_image_time = time.time()
+            )      
             controller.control_routine(err,log_perhaps)
-            # controller.PWM_Response_test(-700, Tr
-    
+
 
 
     except KeyboardInterrupt:
