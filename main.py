@@ -41,12 +41,16 @@ def main():
     try:
         wait_for_space()
         while True:
-            err, reset_integrator = ball_detector.ball_finder(
-                log_perhaps, display=True
-            )      
-            controller.control_routine(err,log_perhaps)
+            err, reset_integrator = ball_detector.ball_finder(log_perhaps, display=True)
+            if reset_integrator:
+                controller.send_pwm_val(0)
+                time.sleep(1)
 
-
+                controller.control_routine(0, reset_integrator, log_perhaps)
+                wait_for_space()
+                reset_integrator = False
+                continue
+            controller.control_routine(err, reset_integrator, log_perhaps)
 
     except KeyboardInterrupt:
         # Handle Ctrl+C to exit gracefully
@@ -55,6 +59,7 @@ def main():
     finally:
         controller.exit(log_perhaps)
         ball_detector.exit(log_perhaps)
+
 
 def wait_for_space():
     print("Press the enter key to enable controller")

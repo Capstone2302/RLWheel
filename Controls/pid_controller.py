@@ -29,6 +29,7 @@ class MotorController:  # add class definitions
         self.e_prev = 0
         self.logger = DataLogger()
 
+   
     def receive_delt_enc(self):
         return receive_msg()
 
@@ -38,8 +39,8 @@ class MotorController:  # add class definitions
             return True
         else:
             return False
-        
-    def control_routine(self, curr_pos, log):
+
+    def control_routine(self, curr_pos, reset, log):
         # get encoder value from UART
         delt_enc = self.receive_delt_enc()
         curr_time = time.time()
@@ -51,11 +52,14 @@ class MotorController:  # add class definitions
         diff_pos = 0 - curr_pos  # set_rpm - curr_rpm
 
         # using PID variables and such, calculate PWM output
-        self.integrator_val += self.e_prev * diff_time
+        if reset:
+            self.integrator_val = 0
+        else:
+            self.integrator_val += self.e_prev * diff_time
 
         pwm_kp = self.k_p * diff_pos
         pwm_ki = self.k_i * (self.integrator_val)
-        pwm_kd = self.k_d * (diff_pos - self.e_prev)/diff_time
+        pwm_kd = self.k_d * (diff_pos - self.e_prev) / diff_time
         pwm_kw = self.k_w * curr_rpm
         pwm_est = pwm_kp + pwm_ki + pwm_kd + pwm_kw
         self.e_prev = diff_pos
@@ -74,6 +78,7 @@ class MotorController:  # add class definitions
                 pwm_kd,
                 pwm_kw,
             )
+            
     def PWM_Response_test(self, pwm_val, log):
         # get encoder value from UART
         # delt_enc = receive_msg()
